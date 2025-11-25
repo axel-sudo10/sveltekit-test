@@ -8,5 +8,4 @@
 
 .filter-item {
     @apply min-w-[5rem] rounded-full border-2;
-    background: red;
 }
