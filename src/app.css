@@ -1,0 +1,12 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.filter-container {
+    @apply flex flex-wrap;
+}
+
+.filter-item {
+    @apply min-w-[5rem] rounded-full border-2;
+    background: red;
+}
