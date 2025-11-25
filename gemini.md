@@ -1,0 +1,2 @@
+denke immer zuerst über die aufgabe oder das problem nach dann benutzen den svelte mcp server für einen tool call an die documentation sollte ein andere documentation auch in frage kommen dann mach einen zusetlichen tool call an den context 7 mcp zur benötigten documentation.
+erstelle daraufhin eine too do liste die hilft das problem oder die aufgabe zu lösen welche du dan abarbeitest in der selben antwort.
