@@ -1,20 +1,10 @@
-// File: src/routes/api/bookings/+server.js
 
-import { json } from '@sveltejs/kit';
+/** @type {import('./$types').PageLoad} */
+export async function load({ fetch, params }) {
+  const res = await fetch(
+    `https://backbone-web-api.production.regensburg.delcom.nl/products?join=tags&s={"isActive":1,"tags.activeState":true, "allowAsLinkedProduct":true }&limit=20&page=1`,
+  );
+  const item = await res.json();
 
-/**
- * Diese Funktion dient als GET-Endpunkt für die Ressource "bookings".
- * Wir kapseln hier den direkten Zugriff auf die externe API.
- * Das hat den Vorteil, dass wir die Datenquelle austauschen können,
- * ohne das Frontend anpassen zu müssen.
- * @type {import('./$types').RequestHandler}
- */
-export async function GET() {
-  // Annahme: Dies ist die URL zu Ihrer externen, öffentlichen API.
-  const response = await fetch('https://dummyjson.com/carts'); // Beispiel-API
-  const data = await response.json();
-
-  // Wir verwenden die `json`-Hilfsfunktion von SvelteKit.
-  // Sie erstellt eine `Response` mit dem korrekten `Content-Type: application/json`.
-  return json(data.carts);
+  return { item };
 }

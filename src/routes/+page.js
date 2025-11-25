@@ -7,11 +7,14 @@
 // };
 
 /** @type {import('./$types').PageLoad} */
-export async function load({ fetch, params }) {
-  const res = await fetch(
-    `https://backbone-web-api.production.regensburg.delcom.nl/products?join=tags&s={"isActive":1,"tags.activeState":true, "allowAsLinkedProduct":true }&limit=20&page=1`,
-  );
-  const item = await res.json();
+export async function load({ fetch }) {
+  // This fetch call now goes to your local API endpoint at
+  // src/routes/api/products/+server.js.
+  // It transparently works during Server-Side Rendering and client-side navigation.
+  const res = await fetch('/api/products');
+  const item = await res.json(); // 'item' will now contain the data fetched by your +server.js
 
+  // The 'item' object (containing the response from your local API)
+  // will be passed as the `data` prop to your +page.svelte component.
   return { item };
 }
