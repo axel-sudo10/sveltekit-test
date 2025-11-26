@@ -1,7 +1,7 @@
 import { json, error } from '@sveltejs/kit';
 
 export async function GET({ fetch }) {
-  const externalApiUrl = `https://backbone-web-api.production.regensburg.delcom.nl/products?join=tags&s={"isActive":1,"tags.activeState":true, "allowAsLinkedProduct":true }&limit=20&page=1`;
+  const externalApiUrl = `https://backbone-web-api.production.regensburg.delcom.nl/products?join=tags&s={"isActive":1,"tags.activeState":true, "allowAsLinkedProduct":true }&limit=20&page=1&join=translations`;
 
   try {
     const res = await fetch(externalApiUrl);
