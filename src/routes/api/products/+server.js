@@ -1,25 +1,21 @@
-import { json } from '@sveltejs/kit';
+import { json, error } from '@sveltejs/kit';
 
-/**
- * Handles GET requests to /api/products.
- * This acts as a proxy to the external API, fetching data from it.
- * @type {import('./$types').RequestHandler}
- */
-export async function GET() {
+export async function GET({ fetch }) {
   const externalApiUrl = `https://backbone-web-api.production.regensburg.delcom.nl/products?join=tags&s={"isActive":1,"tags.activeState":true, "allowAsLinkedProduct":true }&limit=20&page=1`;
 
   try {
     const res = await fetch(externalApiUrl);
     if (!res.ok) {
-      // Handle HTTP errors
-      throw new Error(`External API responded with status ${res.status}`);
+      throw error(res.status, `Failed to fetch products from external API.`);
     }
     const data = await res.json();
-    // Return the data from the external API directly
+    console.log('Data from external API (in +server.js):', data);
     return json(data);
-  } catch (error) {
-    console.error('Error fetching from external API in +server.js:', error);
-    // Return an appropriate error response
-    return json({ error: 'Failed to fetch products', details: error.message }, { status: 500 });
+  } catch (err) {
+    console.error('Error in /api/products/+server.js:', err);
+    if (err.status) {
+      throw err;
+    }
+    throw error(500, 'An unexpected error occurred while fetching products.');
   }
 }

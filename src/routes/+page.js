@@ -12,9 +12,7 @@ export async function load({ fetch }) {
   // src/routes/api/products/+server.js.
   // It transparently works during Server-Side Rendering and client-side navigation.
   const res = await fetch('/api/products');
-  const item = await res.json(); // 'item' will now contain the data fetched by your +server.js
-
-  // The 'item' object (containing the response from your local API)
-  // will be passed as the `data` prop to your +page.svelte component.
-  return { item };
+  const { data: productsArray } = await res.json();
+  console.log('Extracted products array in +page.js:', productsArray);
+  return { products: productsArray };
 }

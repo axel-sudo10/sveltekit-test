@@ -20,7 +20,8 @@
 
     // API-Daten aus load verfügbar
     $effect(() => {
-        console.log("Produkte von API:", data.item);
+    console.log("Entire data object in +page.svelte:", data);
+        console.log("Produkte von API:", data.products);
     });
 </script>
 
