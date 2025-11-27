@@ -23,35 +23,8 @@ export async function load({ fetch }) {
   return { products };
 }
 
-## 3. Cache-Header setzen
-
-**In +page.js hinzufügen:**
-```javascript
-export async function load({ fetch, setHeaders }) {
-  setHeaders({
-    'cache-control': 'public, max-age=300'
-  });
-  
-  const res = await fetch("/api/products");
-  // ... rest code
-}
-
-## 4. Fallback-Werte
-
-**productList.svelte:**
-```javascript
-let { products = [] } = $props();
-```
-
-**productSlot.svelte:**
-```javascript
-let { product = {} } = $props();
-```
-
 
 ## Umsetzungs-Priorität
 
 1. Error-Handling
 2. Debug-Logs entfernen
-3. Cache-Header
-4. Fallback-Werte

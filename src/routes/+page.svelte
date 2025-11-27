@@ -25,8 +25,7 @@
 
 <p>Current filters: {JSON.stringify(currentFilters)}</p>
 
-{#if // TODO ausgabe der API Antwort per Streaming hier schon gegeben?
-data.products}
+{#if data.products}
     <ProductList products={data.products} />
 {:else}
     <p>Loading products...</p>
