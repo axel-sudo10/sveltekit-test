@@ -1,14 +1,15 @@
+import { error } from "@sveltejs/kit";
+
 /** @type {import('./$types').PageLoad} */
 export async function load({ fetch }) {
-  const res = await fetch("/api/products");
-  const responseData = await res.json();
+  const res = await fetch("src/routes/api/products/+page.js");
+  if (!res.ok) {
+    error(res.status, "Failed to fetch products from external API.");
+  }
 
-  // Debug: Log what the API returns
-  console.log("Full API response:", responseData);
-  console.log("Response keys:", Object.keys(responseData));
+  const productsData = await res.json();
 
-  // Extract products array from API response
-  const products = responseData.data || responseData.products || [];
-
-  return { products };
+  return {
+    products: productsData.products || productsData.data || [],
+  };
 }

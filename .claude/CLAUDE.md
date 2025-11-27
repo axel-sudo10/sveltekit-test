@@ -1,6 +1,8 @@
 Projekt informationen:
 svelte api test projekt mit js und tailwind
 
+erstelle keine +server.js!!!
+
 ## Workflow
 1. Denke über Aufgabe/Problem nach
 2. Nutze SvelteKit MCP für Dokumentation

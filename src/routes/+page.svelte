@@ -1,6 +1,6 @@
 <script>
     import FilterMenu from "$lib/components/filterMenu.svelte";
-    import ProductList from "$lib/components/productList.svelte"; // Import ProductList
+    import ProductList from "$lib/components/productList.svelte";
 
     let subscriptions = [
         "B1 1 Monat Basic",
@@ -10,23 +10,25 @@
 
     let categories = ["Bewegungskünste und Turnen", "Denksport", "Tools"];
 
-    let currentFilters = $state({}); // Changed to $state({})
+    let currentFilters = $state({});
 
     function handleFilterChange(filters) {
         currentFilters = filters;
     }
 
-    /** @type {import('./$types').PageData} */
-    let { data } = $props(); // Reverted to $props()
+    /** @type {import('./$types').PageProps} */
+    let { data } = $props();
 </script>
 
-// named parameters oder Parameters opbject
 <FilterMenu {subscriptions} {categories} onFilterChange={handleFilterChange} />
 
 <p>Current filters: {JSON.stringify(currentFilters)}</p>
 
-{#if data.products}
-    <ProductList products={data.products} />
-{:else}
-    <p>Loading products...</p>
-{/if}
+<section>
+    <h2>Produkte</h2>
+    {#if data.products && data.products.length > 0}
+        <ProductList products={data.products} />
+    {:else}
+        <p>Keine Produkte verfügbar</p>
+    {/if}
+</section>
