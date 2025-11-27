@@ -18,20 +18,16 @@
 
     /** @type {import('./$types').PageData} */
     let { data } = $props(); // Reverted to $props()
-
-    // API-Daten aus load verfügbar
-    $effect(() => {
-        console.log("Entire data object in +page.svelte:", data);
-        console.log("Produkte von API:", data.products);
-    });
 </script>
 
+// named parameters oder Parameters opbject
 <FilterMenu {subscriptions} {categories} onFilterChange={handleFilterChange} />
 
 <p>Current filters: {JSON.stringify(currentFilters)}</p>
 
-{#if data.products}
-  <ProductList products={data.products} />
+{#if // TODO ausgabe der API Antwort per Streaming hier schon gegeben?
+data.products}
+    <ProductList products={data.products} />
 {:else}
-  <p>Loading products...</p>
+    <p>Loading products...</p>
 {/if}
