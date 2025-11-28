@@ -1,14 +1,14 @@
-# Onboarding: SvelteKit Craft CMS Test Projekt
+# Onboarding: SvelteKit API Test Projekt
 
 ## Projektübersicht
 
 Dieses Projekt ist eine **SvelteKit-basierte Webapplikation**, die Produkte von einer externen API abruft und diese mit Filterung und detaillierten Ansichten darstellt. Das Projekt dient als Testumgebung für die Integration mit einem Backend-API und die Implementierung einer modernen Frontend-Architektur.
 
 ### Stack
-- **Frontend Framework**: SvelteKit 2.43.2
-- **UI Framework**: Svelte 5.39.5
-- **Styling**: Tailwind CSS 4.1.17
-- **Build Tool**: Vite 7.1.7
+- **Frontend Framework**: SvelteKit
+- **UI Framework**: Svelte 5
+- **Styling**: Tailwind CSS
+- **Build Tool**: Vite
 - **JavaScript**: ES Modules
 
 ## Projektstruktur
@@ -20,13 +20,13 @@ sveltekit-test/
 │   │   ├── +layout.svelte         # Root Layout Component
 │   │   ├── +page.svelte           # Startseite
 │   │   ├── +page.js               # Daten laden für die Startseite
-│   │   └── api/
+│   │   └── api/                   # Routen für API-bezogene Seiten (Anzeige, nicht Endpunkte)
 │   │       ├── products/
-│   │       │   └── +server.js     # API Endpoint für Produktliste
+│   │       │   └── +page.js       # Logik für die Produktlisten-Seite
 │   │       ├── bookings/
-│   │       │   └── +page.js       # Buchungen API
+│   │       │   └── +page.js       # Logik für die Buchungs-Seite
 │   │       └── product/[id]/
-│   │           └── +page.js       # Einzelnes Produkt Detail
+│   │           └── +page.js       # Logik für die Produktdetail-Seite
 │   ├── lib/
 │   │   ├── components/            # Wiederverwendbare Svelte Components
 │   │   │   ├── filterMenu.svelte  # Filtermenu für Abos und Kategorien
@@ -38,39 +38,44 @@ sveltekit-test/
 │   │   └── index.js               # Library Exports
 │   └── app.css                    # Globale Styles
 ├── package.json                   # Abhängigkeiten & Scripts
-└── vite.config.js                # Vite Konfiguration (optional)
+└── svelte.config.js               # SvelteKit Konfiguration
 ```
 
 ## Hauptkomponenten & Datenfluss
 
 ### 1. Produktdaten laden (`src/routes/+page.js`)
+Die Produktdaten werden direkt in der universellen `load` Funktion der Startseite von der externen API geladen. Es wird kein lokaler API-Endpunkt als Proxy verwendet.
+
 ```javascript
+import { error } from "@sveltejs/kit";
+
+/** @type {import('./$types').PageLoad} */
 export async function load({ fetch }) {
-  const res = await fetch('/api/products');
-  const { data: productsArray } = await res.json();
-  return { products: productsArray };
+    const res = await fetch(
+        `https://backbone-web-api.production.regensburg.delcom.nl/products?join=tags&join=translations&join=location&limit=20&page=1&s=${encodeURIComponent(JSON.stringify({ isActive: 1, "tags.activeState": true, allowAsLinkedProduct: true }))}`,
+    );
+
+    if (!res.ok) {
+        error(res.status, "Failed to fetch products from external API.");
+    }
+
+    const productsData = await res.json();
+
+    return {
+        products: productsData.products || productsData.data || [],
+    };
 }
 ```
-- Lädt Produktdaten von der lokalen API
-- Diese Daten werden auf der Startseite verfügbar gemacht
+- **Datenquelle**: `https://backbone-web-api.production.regensburg.delcom.nl/`
+- **Fehlerbehandlung**: SvelteKits `error()` Funktion wird genutzt, um bei fehlerhaften API-Antworten eine Fehlerseite anzuzeigen. Dies ist die etablierte Methode im Projekt.
 
-### 2. API Endpoint (`src/routes/api/products/+server.js`)
-- Ruft eine externe API ab: `https://backbone-web-api.production.regensburg.delcom.nl/`
-- Parameter:
-  - `join=tags` - Verlinkt Tags zu Produkten
-  - `join=translations` - Verlinkt Übersetzungen
-  - `join=location` - Verlinkt Standort-Informationen
-  - `isActive=1` - Nur aktive Produkte
-  - `limit=20` - Maximal 20 Produkte pro Seite
-- Fehlerbehandlung mit SvelteKit Error-Handling
-
-### 3. Startseite (`src/routes/+page.svelte`)
+### 2. Startseite (`src/routes/+page.svelte`)
 **Funktionalität:**
 - Zeigt FilterMenu (Abos & Kategorien)
-- Rendert ProductList mit API-Daten
-- Verwaltet aktuelle Filter als State
+- Rendert ProductList mit den via `load` Funktion geladenen Daten.
+- Verwaltet aktuelle Filter als State.
 
-**Filter Optionen:**
+**Filter Optionen (Beispiel):**
 ```javascript
 let subscriptions = [
   "B1 1 Monat Basic",
@@ -80,20 +85,18 @@ let subscriptions = [
 let categories = ["Bewegungskünste und Turnen", "Denksport", "Tools"];
 ```
 
-### 4. Komponenten
+### 3. Komponenten
 
 #### FilterMenu (`src/lib/components/filterMenu.svelte`)
-- Nimmt `subscriptions`, `categories`, und `onFilterChange` Handler entgegen
-- Gibt gefilterte Optionen an Parent-Komponente zurück
+- Nimmt `subscriptions`, `categories`, und `onFilterChange` Handler entgegen.
+- Gibt gefilterte Optionen an Parent-Komponente zurück.
 
 #### ProductList (`src/lib/components/productList.svelte`)
-- Rendert mehrere ProductSlot Komponenten
-- Grid Layout (1 Spalte mobil, 2 Tablets, 3 Desktop)
-- Nutzt Svelte 5 `$props()` für Props-Handling
+- Rendert mehrere `productSlot` Komponenten in einem responsiven Grid.
+- Nutzt Svelte 5 `$props()` für das Props-Handling.
 
 #### ProductSlot (`src/lib/components/productSlot.svelte`)
-- Zeigt einzelne Produktkarte an
-- Enthält Produktinformationen wie Preis, Startdatum, Beschreibung
+- Zeigt eine einzelne Produktkarte mit Preis, Startdatum und Beschreibung.
 
 ## Setup & Entwicklung
 
@@ -106,130 +109,53 @@ npm install
 ```bash
 npm run dev
 ```
-- Dev Server läuft standard auf `http://localhost:5173`
-- Mit `--open` Flag öffnet sich die App automatisch im Browser
+- Dev Server läuft standardmäßig auf `http://localhost:5173`.
+- Mit `npm run dev -- --open` öffnet sich die App automatisch im Browser.
 
 ### Production Build
 ```bash
 npm run build
-npm run preview  # Preview der Production Build
+npm run preview
 ```
 
 ## Wichtige Konzepte
 
 ### Svelte 5 Runes
-Das Projekt nutzt Svelte 5 mit modernen "Runes": 
-- `$props()` - Für Props-Handling (ersetzt Props-Validierung)
-- `$state()` - Für reaktiven State (ersetzt reactive declarations)
-- `$effect()` - Für Side Effects (ersetzt reaktive Statements)
+Das Projekt nutzt Svelte 5 mit modernen "Runes" für die Zustandsverwaltung und Reaktivität:
+- `$props()` - Deklariert Komponenten-Properties.
+- `$state()` - Erstellt reaktiven State.
+- `$effect()` - Führt Side Effects aus, wenn Abhängigkeiten sich ändern.
 
 ### SvelteKit Load Funktionen
-- `+page.js` - Server-side/Universal load funktionen
-- `+server.js` - API Endpoints (GET, POST, etc.)
-- `+layout.js` - Layout-spezifische Daten
+- `+page.js` - Server-side/universelle `load` Funktionen, um Daten für eine Seite zu laden.
+- `+server.js` - Werden für die Erstellung von API-Endpunkten genutzt (im Projekt aktuell nicht im Einsatz).
 
 ### Tailwind CSS
-- Utility-First CSS Framework
-- Responsive Design mit Breakpoints: `sm`, `md`, `lg`, `xl`
-- Klassen wie `grid-cols-1 md:grid-cols-2 lg:grid-cols-3` für responsive Layouts
-
-## API Integration
-
-### Externe API
-**Basis URL:** `https://backbone-web-api.production.regensburg.delcom.nl/products`
-
-**Query Parameter:**
-- `join=tags|translations|location` - Daten-Joins
-- `s=` - Filter Objekt
-- `limit=20` - Pagination Limit
-- `page=1` - Seite
-
-**Beispiel Response Struktur:**
-```javascript
-{
-  "data": [
-    {
-      "id": 123,
-      "startDate": "2024-01-15",
-      "slotMinuts": 60,
-      "translations": [{ "description": "..." }],
-      "location": { "description": "..." },
-      "price": 29.99,
-      "isCourse": true
-    }
-  ]
-}
-```
+- Utility-First CSS Framework für schnelles Styling.
+- Responsive Design wird über Prefixes wie `md:` und `lg:` realisiert.
 
 ## Bekannte Probleme & Verbesserungen
 
 ### Bestehende Issues
-1. **Tippfehler im Komponenten-Namen**: `poductDetails.svelte` statt `productDetails.svelte`
-2. **Filterlogik nicht implementiert**: FilterMenu ist vorhanden, aber Filter werden nicht angewendet
-3. **Produktdetail-Route nicht aktiv**: `/api/product/[id]/+page.js` existiert, ist aber nicht verlinkt
+1. **Tippfehler im Komponenten-Namen**: `poductDetails.svelte` sollte zu `productDetails.svelte` umbenannt werden.
+2. **Filterlogik nicht implementiert**: Das `filterMenu` ist vorhanden, aber die Filterung der Produktliste ist noch nicht implementiert.
+3. **Produktdetail-Route nicht aktiv**: Die Routen unter `/product/[id]` existieren, sind aber noch nicht von der Produktliste aus verlinkt.
+4. **Struktur der API-Routen**: Die `api/` Unterordner enthalten Svelte-Seiten (`+page.svelte`), was unüblich ist. Dies sollte geprüft und ggf. refaktoriert werden.
 
 ### Nächste Schritte
-- [ ] Filter-Logik implementieren (Abos & Kategorien)
-- [ ] Produktdetails-Seite aufbauen mit Modal/neue Route
-- [ ] Error Handling für API-Fehler verbessern
-- [ ] Loading States hinzufügen
-- [ ] Komponenten-Namen korrigieren
-- [ ] TypeScript Migration (optional)
+- [ ] Filter-Logik implementieren (Abos & Kategorien).
+- [ ] Produktdetail-Seite aufbauen und verlinken.
+- [ ] Loading States für asynchrone Operationen hinzufügen.
+- [ ] Komponenten-Namen korrigieren.
+- [ ] TypeScript Migration (optional).
 
 ## Entwickler-Tipps
 
 ### Debugging
-- Browser Console: API-Aufrufe und Daten werden mit `console.log()` dokumentiert
-- Network Tab: Prüfe `/api/products` Anfragen und Responses
-- Svelte DevTools: Browser Extension für Svelte Component Inspection
-
-### Hot Module Replacement (HMR)
-- Änderungen an `.svelte` und `.js` Dateien werden live reloaded
-- Keine manuelle Seiten-Aktualisierung nötig
-
-### CSS Klassen
-- Alle Klassen müssen in den Tailwind Config registriert sein
-- Custom CSS in `src/app.css` für globale Styles
-
-## Häufige Aufgaben
-
-### Neue Komponente hinzufügen
-1. Datei in `src/lib/components/` erstellen
-2. Svelte 5 Syntax nutzen (`$props()`, `$state()`)
-3. In Parent-Komponente importieren
-
-### API Endpoint erweitern
-1. Neue Route in `src/routes/api/` erstellen (z.B. `search/+server.js`)
-2. GET/POST/DELETE Handler exportieren
-3. Mit `fetch('/api/search')` im Frontend aufrufen
-
-### Styling ändern
-1. Tailwind Klassen direkt in Komponenten nutzen
-2. Spezifische Styles in `<style>` Block der Komponente
-3. Globale Styles in `src/app.css`
-
-## Ressourcen
-
-- [SvelteKit Dokumentation](https://kit.svelte.dev)
-- [Svelte 5 Runes](https://svelte.dev/docs/svelte)
-- [Tailwind CSS Docs](https://tailwindcss.com/docs)
-- [Vite Dokumentation](https://vitejs.dev)
-
-## Git Workflow
-
-Aktueller Stand: Haupt-Branch `main`
-- Arbeite auf Feature-Branches
-- Pull Requests vor Merge zu `main`
-
-```bash
-git checkout -b feature/neue-funktion
-# ... Änderungen machen ...
-git add .
-git commit -m "Add neue-funktion"
-git push origin feature/neue-funktion
-```
+- Browser DevTools (Console & Network Tab) zur Überprüfung von API-Aufrufen.
+- Svelte DevTools Browser-Erweiterung zur Inspektion von Komponenten-Zuständen.
 
 ---
 
-**Letzte Aktualisierung:** 2025-11-27
+**Letzte Aktualisierung:** 2025-11-28
 **Projekt Status:** In aktiver Entwicklung - API Integration & UI-Refactoring
