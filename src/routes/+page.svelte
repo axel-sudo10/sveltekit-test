@@ -6,9 +6,10 @@
         "B1 1 Monat Basic",
         "B2 3 Monate Basic",
         "B3 1 Jahr Basic",
-    ];
+    ]; //TODO: beispielabonnements sollen mit API geladen werden werden fetch subscriptions
 
     let categories = ["Bewegungskünste und Turnen", "Denksport", "Tools"];
+    // TODO: beispielkategorien sollen mit API geladen werden werden fetch categories
 
     let currentFilters = $state({});
 
