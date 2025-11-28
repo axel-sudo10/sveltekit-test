@@ -2,14 +2,18 @@ import { error } from "@sveltejs/kit";
 
 /** @type {import('./$types').PageLoad} */
 export async function load({ fetch }) {
-  const res = await fetch("src/routes/api/products/+page.js");
-  if (!res.ok) {
-    error(res.status, "Failed to fetch products from external API.");
-  }
+    const res = await fetch(
+        `https://backbone-web-api.production.regensburg.delcom.nl/products?join=tags&join=translations&join=location&limit=20&page=1&s=${encodeURIComponent(JSON.stringify({ isActive: 1, "tags.activeState": true, allowAsLinkedProduct: true }))}`,
+    );
 
-  const productsData = await res.json();
+    if (!res.ok) {
+        error(res.status, "Failed to fetch products from external API.");
+    }
 
-  return {
-    products: productsData.products || productsData.data || [],
-  };
+    const productsData = await res.json();
+
+    //TODO: spätere implemation von fetch requests für abonnements und kategorien
+    return {
+        products: productsData.products || productsData.data || [],
+    };
 }
