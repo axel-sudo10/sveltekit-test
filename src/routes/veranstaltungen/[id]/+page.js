@@ -2,18 +2,32 @@ import { error } from "@sveltejs/kit";
 
 /** @type {import('./$types').PageLoad} */
 export async function load({ fetch, params }) {
-  // params.id enthält die ID aus der URL (z.B. /veranstaltungen/29 → params.id = "29")
-  const res = await fetch(
-    `https://backbone-web-api.production.regensburg.delcom.nl/products/${params.id}?join=tags&join=location&join=documents&join=translations&join=linkedSubscriptions`,
-  );
+  // Parallele Requests mit Promise.all()
+  const [proRes, boRes] = await Promise.all([
+    fetch(
+      `https://backbone-web-api.production.regensburg.delcom.nl/products/${params.id}?join=tags&join=location&join=documents&join=translations&join=linkedSubscriptions`,
+    ),
+    fetch(
+      `https://backbone-web-api.production.regensburg.delcom.nl/bookings?limit=60&page=1&s={"linkedProductId":{"$in":[${params.id}]}}&fields=startDate,endDate`,
+    ),
+  ]);
 
-  if (!res.ok) {
-    error(res.status, "Failed to fetch product from external API.");
+  // Error Handling für Product
+  if (!proRes.ok) {
+    error(proRes.status, "Failed to fetch product from external API.");
   }
 
-  const product = await res.json();
+  // Error Handling für Bookings
+  if (!boRes.ok) {
+    error(boRes.status, "Failed to fetch bookings from external API.");
+  }
+
+  // JSON Parsing
+  const product = await proRes.json();
+  const bookings = await boRes.json();
 
   return {
     product,
+    bookings,
   };
 }

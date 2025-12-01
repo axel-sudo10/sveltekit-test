@@ -3,14 +3,17 @@
 
     // Hilfsfunktion: Erstes Bild aus documents holen
     const getImageUrl = (product) => {
-        if (
-            product.documents &&
-            product.documents.length > 0 &&
-            product.documents[0].path
-        ) {
-            // TODO: Prüfen ob Base-URL benötigt wird
-            return product.documents[0].path;
+        if (product.documents?.length > 0 && product.documents[0]?.path) {
+            const baseUrl =
+                "https://storage.googleapis.com/static.production.regensburg.delcom.nl/";
+            return baseUrl + product.documents[0].path;
         }
+
+        console.warn("❌ Kein Bild verfügbar - Fallback wird verwendet", {
+            hasDocuments: !!product.documents,
+            documentsLength: product.documents?.length || 0,
+            firstDocument: product.documents?.[0],
+        });
         return "https://placehold.co/664x323";
     };
 
@@ -26,9 +29,11 @@
     };
 
     // TODO: Zeitbereiche aus API-Daten mappen
+    // diese kommen wegen der id von der selben request wie die anderen products
     // Aktuell nicht in der API-Response sichtbar - placeholder Daten
+    // benötigt statDate und endDate aus bookigs ye einen eintrag probookings
     const morningHours = [
-        { day: "Mo", time: "07:30 - 10:00" },
+        { day: "Mo", time: "statDate - endDate" },
         { day: "Di", time: "07:30 - 10:00" },
         { day: "Mi", time: "07:30 - 10:00" },
         { day: "Do", time: "07:30 - 10:00" },
