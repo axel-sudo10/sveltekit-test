@@ -16,29 +16,27 @@ Dieses Projekt ist eine **SvelteKit-basierte Webapplikation**, die Produkte von 
 ```
 sveltekit-test/
 ├── src/
-│   ├── routes/                    # SvelteKit Routing
-│   │   ├── +layout.svelte         # Root Layout Component
-│   │   ├── +page.svelte           # Startseite
-│   │   ├── +page.js               # Daten laden für die Startseite
-│   │   └── api/
-│   │       ├── products/
-│   │       │   └── +server.js     # API Endpoint für Produktliste
-│   │       ├── bookings/
-│   │       │   └── +page.js       # Buchungen API
-│   │       └── product/[id]/
-│   │           └── +page.js       # Einzelnes Produkt Detail
+│   ├── routes/                       # SvelteKit Routing
+│   │   ├── +layout.svelte            # Root Layout Component
+│   │   ├── +page.svelte              # Startseite
+│   │   ├── +page.js                  # Daten laden für die Startseite
+│   │   └── veranstaltungen/          # Veranstaltungen Route
+│   │       └── [id]/                 # Dynamische ID Route
+│   │           ├── +page.svelte      # Detail-Seite für Veranstaltung
+│   │           └── +page.js          # Load-Funktion mit parallelen API-Requests
 │   ├── lib/
-│   │   ├── components/            # Wiederverwendbare Svelte Components
-│   │   │   ├── filterMenu.svelte  # Filtermenu für Abos und Kategorien
-│   │   │   ├── productList.svelte # Produktlisten-Container
-│   │   │   ├── productSlot.svelte # Einzelne Produktkarte
-│   │   │   └── poductDetails.svelte # Produktdetails (Note: Tippfehler im Namen)
-│   │   ├── assets/                # Statische Assets
+│   │   ├── components/               # Wiederverwendbare Svelte Components
+│   │   │   ├── filterMenu.svelte     # Filtermenu für Abos und Kategorien
+│   │   │   ├── productList.svelte    # Produktlisten-Container
+│   │   │   ├── productSlot.svelte    # Einzelne Produktkarte
+│   │   │   ├── productDetails.svelte # Produktdetails mit Bild, Beschreibung
+│   │   │   └── BookingSchedule.svelte # Wochen-Pagination für Buchungszeiten
+│   │   ├── assets/                   # Statische Assets
 │   │   │   └── favicon.svg
-│   │   └── index.js               # Library Exports
-│   └── app.css                    # Globale Styles
-├── package.json                   # Abhängigkeiten & Scripts
-└── vite.config.js                # Vite Konfiguration (optional)
+│   │   └── index.js                  # Library Exports
+│   └── app.css                       # Globale Styles
+├── package.json                      # Abhängigkeiten & Scripts
+└── vite.config.js                   # Vite Konfiguration (optional)
 ```
 
 ## Hauptkomponenten & Datenfluss
@@ -46,23 +44,43 @@ sveltekit-test/
 ### 1. Produktdaten laden (`src/routes/+page.js`)
 ```javascript
 export async function load({ fetch }) {
-  const res = await fetch('/api/products');
+  const res = await fetch(
+    'https://backbone-web-api.production.regensburg.delcom.nl/products?join=tags&join=translations&join=location&isActive=1&limit=20'
+  );
+  
+  if (!res.ok) {
+    error(res.status, 'Failed to fetch products from external API.');
+  }
+  
   const { data: productsArray } = await res.json();
   return { products: productsArray };
 }
 ```
-- Lädt Produktdaten von der lokalen API
-- Diese Daten werden auf der Startseite verfügbar gemacht
+- Lädt Produktdaten **direkt von der externen API**
+- Nutzt SvelteKit Error-Handling mit `error()`
 
-### 2. API Endpoint (`src/routes/api/products/+server.js`)
-- Ruft eine externe API ab: `https://backbone-web-api.production.regensburg.delcom.nl/`
-- Parameter:
-  - `join=tags` - Verlinkt Tags zu Produkten
-  - `join=translations` - Verlinkt Übersetzungen
-  - `join=location` - Verlinkt Standort-Informationen
-  - `isActive=1` - Nur aktive Produkte
-  - `limit=20` - Maximal 20 Produkte pro Seite
-- Fehlerbehandlung mit SvelteKit Error-Handling
+### 2. Veranstaltungs-Details mit parallelen Requests (`src/routes/veranstaltungen/[id]/+page.js`)
+```javascript
+export async function load({ fetch, params }) {
+  // Parallele Requests mit Promise.all()
+  const [proRes, boRes] = await Promise.all([
+    fetch(`https://...delcom.nl/products/${params.id}?join=tags&join=location&join=documents&join=translations&join=linkedSubscriptions`),
+    fetch(`https://...delcom.nl/bookings?limit=60&page=1&s={"linkedProductId":{"$in":[${params.id}]}}&fields=startDate,endDate`)
+  ]);
+
+  // Error Handling für beide Requests
+  if (!proRes.ok) error(proRes.status, "Failed to fetch product");
+  if (!boRes.ok) error(boRes.status, "Failed to fetch bookings");
+
+  const product = await proRes.json();
+  const bookings = await boRes.json();
+
+  return { product, bookings };
+}
+```
+- **Parallele API-Requests** mit `Promise.all()` für bessere Performance
+- Lädt Product + Bookings gleichzeitig
+- Fehlerbehandlung mit SvelteKit `error()` Helper
 
 ### 3. Startseite (`src/routes/+page.svelte`)
 **Funktionalität:**
@@ -94,6 +112,49 @@ let categories = ["Bewegungskünste und Turnen", "Denksport", "Tools"];
 #### ProductSlot (`src/lib/components/productSlot.svelte`)
 - Zeigt einzelne Produktkarte an
 - Enthält Produktinformationen wie Preis, Startdatum, Beschreibung
+- Verlinkt auf `/veranstaltungen/[id]` für Details
+
+#### ProductDetails (`src/lib/components/productDetails.svelte`)
+- Zeigt detaillierte Produktinformationen
+- Lädt Produktbild aus `documents` Array
+- Zeigt Beschreibung aus `translations`
+- Integriert BookingSchedule für Zeitplan
+- Props: `product`, `bookings`
+
+#### BookingSchedule (`src/lib/components/BookingSchedule.svelte`)
+**Neue Komponente für Buchungszeiten mit Wochen-Pagination**
+
+Features:
+- Gruppiert Bookings nach Kalenderwochen (Mo-So)
+- Teilt Zeiten in Vormittag (< 12:00) und Nachmittag (≥ 12:00)
+- Wochen-Navigation mit Vor/Zurück Buttons
+- Startet automatisch bei der aktuellen Woche
+- Zeigt Verfügbarkeitsstatus: ✓ Frei / ✗ Voll
+- Responsive: Mobile übereinander, Desktop nebeneinander
+
+Datenstruktur:
+```javascript
+// API Response
+{
+  data: [
+    {
+      id: 2456,
+      currentParticipantCount: 4,
+      availableParticipantCount: 2,  // > 0 = Frei
+      maxParticipants: null,          // wird berechnet
+      startDate: "2025-04-28T14:00:00.000Z",
+      endDate: "2025-04-28T15:59:00.000Z"
+    }
+  ],
+  count: 38,
+  total: 38
+}
+```
+
+Logik:
+- Extrahiert `bookings.data` Array aus API Response
+- Berechnet `maxParticipants` falls `null`: `currentParticipantCount + availableParticipantCount`
+- `available = availableParticipantCount > 0`
 
 ## Setup & Entwicklung
 
