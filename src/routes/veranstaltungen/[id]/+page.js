@@ -8,7 +8,7 @@ export async function load({ fetch, params }) {
       `https://backbone-web-api.production.regensburg.delcom.nl/products/${params.id}?join=tags&join=location&join=documents&join=translations&join=linkedSubscriptions`,
     ),
     fetch(
-      `https://backbone-web-api.production.regensburg.delcom.nl/bookings?limit=60&page=1&s={"linkedProductId":{"$in":[${params.id}]}}&fields=startDate,endDate`,
+      `https://backbone-web-api.production.regensburg.delcom.nl/bookings?limit=60&page=1&s={"linkedProductId":{"$in":[${params.id}]}}`,
     ),
   ]);
 

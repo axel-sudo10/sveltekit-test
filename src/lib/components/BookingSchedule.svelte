@@ -144,7 +144,29 @@
 
         const available = booking.availableParticipantCount > 0;
 
-        return { dayName, dateStr, startTime, endTime, available };
+        // Debug: Log die ersten 3 Bookings
+        if (booking.id <= 2458) {
+            console.log(`🔍 Booking ${booking.id}:`, {
+                currentParticipantCount: booking.currentParticipantCount,
+                availableParticipantCount: booking.availableParticipantCount,
+                maxParticipants: booking.maxParticipants,
+                calculated_available: available,
+            });
+        }
+
+        // Maximale Teilnehmer berechnen falls nicht vorhanden
+        const maxParticipants =
+            booking.maxParticipants ||
+            booking.currentParticipantCount + booking.availableParticipantCount;
+
+        return {
+            dayName,
+            dateStr,
+            startTime,
+            endTime,
+            available,
+            maxParticipants,
+        };
     };
 </script>
 
@@ -209,10 +231,10 @@
                             <p class="text-blue-600 font-medium">
                                 {formatted.startTime} - {formatted.endTime} Uhr
                             </p>
-                            {#if !formatted.available}
+                            {#if formatted.available}
                                 <p class="text-xs text-gray-600 mt-2">
-                                    ({booking.currentParticipantCount}/{booking.maxParticipants ||
-                                        "∞"} Teilnehmer)
+                                    ({booking.currentParticipantCount}/{formatted.maxParticipants}
+                                    Teilnehmer)
                                 </p>
                             {/if}
                         </div>
@@ -251,10 +273,10 @@
                             <p class="text-gray-700 font-medium">
                                 {formatted.startTime} - {formatted.endTime} Uhr
                             </p>
-                            {#if !formatted.available}
+                            {#if formatted.available}
                                 <p class="text-xs text-gray-600 mt-2">
-                                    ({booking.currentParticipantCount}/{booking.maxParticipants ||
-                                        "∞"} Teilnehmer)
+                                    ({booking.currentParticipantCount}/{formatted.maxParticipants}
+                                    Teilnehmer)
                                 </p>
                             {/if}
                         </div>
