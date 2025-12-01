@@ -8,7 +8,7 @@
     <h1 class="text-2xl font-bold mb-4">Veranstaltungsdetails</h1>
 
     {#if data.product}
-        <ProductDetails product={data.product} />
+        <ProductDetails product={data.product} bookings={data.bookings} />
     {:else}
         <p>Keine Produktdaten verfügbar.</p>
     {/if}

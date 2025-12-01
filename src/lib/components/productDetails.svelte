@@ -1,5 +1,7 @@
 <script>
-    let { product } = $props();
+    import BookingSchedule from "./BookingSchedule.svelte";
+
+    let { product, bookings } = $props();
 
     // Hilfsfunktion: Erstes Bild aus documents holen
     const getImageUrl = (product) => {
@@ -27,27 +29,6 @@
         }
         return "Keine Beschreibung verfügbar";
     };
-
-    // TODO: Zeitbereiche aus API-Daten mappen
-    // diese kommen wegen der id von der selben request wie die anderen products
-    // Aktuell nicht in der API-Response sichtbar - placeholder Daten
-    // benötigt statDate und endDate aus bookigs ye einen eintrag probookings
-    const morningHours = [
-        { day: "Mo", time: "statDate - endDate" },
-        { day: "Di", time: "07:30 - 10:00" },
-        { day: "Mi", time: "07:30 - 10:00" },
-        { day: "Do", time: "07:30 - 10:00" },
-        { day: "Fr", time: "07:30 - 10:00" },
-        { day: "Sa", time: "09:00 - 16:30" },
-    ];
-
-    const afternoonHours = [
-        { day: "Mo", time: "14:00 - 21:45" },
-        { day: "Di", time: "14:00 - 21:45" },
-        { day: "Mi", time: "14:00 - 21:45" },
-        { day: "Do", time: "14:00 - 21:45" },
-        { day: "Fr", time: "14:00 - 20:15" },
-    ];
 
     // Event-Handler für Buttons
     const handleClose = () => {
@@ -103,35 +84,8 @@
                 </div>
             {/if}
 
-            <!-- Zeitbereiche -->
-            <!-- TODO: Diese Daten aus der API holen, wenn verfügbar -->
-            <div class="flex flex-wrap gap-8">
-                <!-- Vormittags -->
-                <div class="flex flex-col gap-4 max-w-[350px]">
-                    <h4 class="text-primary text-base font-medium">
-                        Vormittags
-                    </h4>
-
-                    <div class="grid grid-cols-2 gap-3">
-                        {#each morningHours as slot (slot.day)}
-                            <span>{slot.day}: {slot.time}</span>
-                        {/each}
-                    </div>
-                </div>
-
-                <!-- Nachmittags -->
-                <div class="flex flex-col gap-4 max-w-[350px]">
-                    <h4 class="text-black text-base font-medium">
-                        Nachmittags
-                    </h4>
-
-                    <div class="grid grid-cols-2 gap-3">
-                        {#each afternoonHours as slot (slot.day)}
-                            <span>{slot.day}: {slot.time}</span>
-                        {/each}
-                    </div>
-                </div>
-            </div>
+            <!-- Zeitbereiche mit Wochen-Pagination -->
+            <BookingSchedule {bookings} />
         </div>
     </div>
 
