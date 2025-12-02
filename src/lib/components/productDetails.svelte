@@ -19,13 +19,34 @@
         return "https://placehold.co/664x323";
     };
 
-    // Beschreibung aus translations holen
-    const getDescription = (product) => {
-        if (product.translations && product.translations.length > 0) {
+    // HTML extrahieren und bereinigen (optimiert - single pass)
+    const extractText = (html) => {
+        if (!html) return "";
+
+        return html
+            .replace(/<[^>]*>/g, "")
+            .replace(/&nbsp;|&#?\w+;/g, " ")
+            .replace(/\s+/g, " ")
+            .trim();
+    };
+
+    // Titel aus translations.description holen
+    const getTitle = (product) => {
+        if (product.translations?.length > 0) {
             return (
                 product.translations[0].description ||
                 "Keine Beschreibung verfügbar"
             );
+        }
+        return "Keine Beschreibung verfügbar";
+    };
+
+    // Beschreibung aus translations.summary holen (bereinigt)
+    const getDescription = (product) => {
+        if (product.translations?.length > 0) {
+            const summary = product.translations[0].summary;
+            const text = extractText(summary);
+            return text || "Keine Beschreibung verfügbar";
         }
         return "Keine Beschreibung verfügbar";
     };
@@ -49,8 +70,9 @@
     <div class="flex flex-col md:flex-row md:gap-8 gap-6 flex-wrap">
         <!-- Linke Spalte -->
         <div class="flex-1 min-w-[280px] md:min-w-[400px] flex flex-col gap-4">
+            <!-- titel -->
             <h2 class="text-base sm:text-lg font-medium text-black">
-                {getDescription(product)}
+                {getTitle(product)}
             </h2>
 
             <img
@@ -62,6 +84,9 @@
 
         <!-- Rechte Spalte -->
         <div class="flex-1 min-w-[250px] flex flex-col gap-8">
+            <!-- Zeitbereiche mit Wochen-Pagination -->
+            <BookingSchedule {bookings} />
+
             <!-- Verfügbar für -->
             {#if product.linkedSubscriptions && product.linkedSubscriptions.length > 0}
                 <div class="flex flex-col gap-4">
@@ -83,9 +108,6 @@
                     </div>
                 </div>
             {/if}
-
-            <!-- Zeitbereiche mit Wochen-Pagination -->
-            <BookingSchedule {bookings} />
         </div>
     </div>
 
@@ -95,6 +117,7 @@
             {getDescription(product)}
         </p>
 
+        <!-- ort -->
         {#if product.location && product.location.description}
             <p>
                 <strong>Ort:</strong>

@@ -2,7 +2,7 @@
     let { product } = $props();
 </script>
 
-<a href="/veranstaltungen/{product.id}" class="filterSlots">
+<a href="/veranstaltung/{product.id}" class="filterSlots">
     <div>
         Product ID: {product.id}
     </div>

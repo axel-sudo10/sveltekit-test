@@ -20,7 +20,7 @@ sveltekit-test/
 │   │   ├── +layout.svelte            # Root Layout Component
 │   │   ├── +page.svelte              # Startseite
 │   │   ├── +page.js                  # Daten laden für die Startseite
-│   │   └── veranstaltungen/          # Veranstaltungen Route
+│   │   └── veranstaltung/          # veranstaltung Route
 │   │       └── [id]/                 # Dynamische ID Route
 │   │           ├── +page.svelte      # Detail-Seite für Veranstaltung
 │   │           └── +page.js          # Load-Funktion mit parallelen API-Requests
@@ -59,7 +59,7 @@ export async function load({ fetch }) {
 - Lädt Produktdaten **direkt von der externen API**
 - Nutzt SvelteKit Error-Handling mit `error()`
 
-### 2. Veranstaltungs-Details mit parallelen Requests (`src/routes/veranstaltungen/[id]/+page.js`)
+### 2. Veranstaltungs-Details mit parallelen Requests (`src/routes/veranstaltung/[id]/+page.js`)
 ```javascript
 export async function load({ fetch, params }) {
   // Parallele Requests mit Promise.all()
@@ -112,7 +112,7 @@ let categories = ["Bewegungskünste und Turnen", "Denksport", "Tools"];
 #### ProductSlot (`src/lib/components/productSlot.svelte`)
 - Zeigt einzelne Produktkarte an
 - Enthält Produktinformationen wie Preis, Startdatum, Beschreibung
-- Verlinkt auf `/veranstaltungen/[id]` für Details
+- Verlinkt auf `/veranstaltung/[id]` für Details
 
 #### ProductDetails (`src/lib/components/productDetails.svelte`)
 - Zeigt detaillierte Produktinformationen
