@@ -13,5 +13,5 @@
 }
 
 .filterSlots {
-    @apply p-4 py-2 flex flex-col gap-2 bg-gray-800 rounded-lg text-white w-full block;
+    @apply p-4 py-2 flex flex-col gap-2 bg-gray-800 rounded-lg text-white no-underline w-full block;
 }
