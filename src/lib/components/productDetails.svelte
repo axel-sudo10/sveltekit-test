@@ -51,6 +51,26 @@
         return "Keine Beschreibung verfügbar";
     };
 
+    // Gültige Subscription-Präfixe
+    const VALID_SUBSCRIPTION_PREFIXES = ["B", "B1", "B2", "B3", "C", "D1"];
+
+    // Prüft ob Subscription mit gültigem Präfix beginnt
+    const isValidSubscription = (description) => {
+        if (!description || typeof description !== "string") {
+            return false;
+        }
+        return VALID_SUBSCRIPTION_PREFIXES.some((prefix) =>
+            description.startsWith(prefix),
+        );
+    };
+
+    // Reaktiv gefilterte Subscriptions
+    const filteredSubscriptions = $derived(
+        product.linkedSubscriptions?.filter((sub) =>
+            isValidSubscription(sub.description),
+        ) ?? [],
+    );
+
     // Event-Handler für Buttons
     const handleClose = () => {
         // TODO: Navigation zurück oder Modal schließen
@@ -85,14 +105,12 @@
         <!-- Rechte Spalte -->
         <div class="flex-1 min-w-[250px] flex flex-col gap-8">
             <!-- Voraussetzung -->
-            {#if product.linkedSubscriptions && product.linkedSubscriptions.length > 0}
+            {#if filteredSubscriptions.length > 0}
                 <div class="flex flex-col gap-4">
-                    <h3 class="text-lg font-medium text-black">
-                        Voraussetzung:
-                    </h3>
+                    <h3>Voraussetzung:</h3>
 
-                    <div class="flex flex-wrap gap-4">
-                        {#each product.linkedSubscriptions as subscription, i (i)}
+                    <div class="flex-gap-container">
+                        {#each filteredSubscriptions as subscription, i (i)}
                             <div class="flex items-center gap-2">
                                 <div
                                     class="w-8 h-8 border-2 border-black rounded-sm"
@@ -104,6 +122,8 @@
                         {/each}
                     </div>
                 </div>
+            {:else}
+                <p class="sub_text">Keine Voraussetzungen erforderlich</p>
             {/if}
         </div>
     </div>
