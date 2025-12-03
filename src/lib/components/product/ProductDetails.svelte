@@ -18,6 +18,7 @@
             firstDocument: product.documents?.[0],
         });
         return "https://placehold.co/664x323";
+        //TODO element img sollte schon den platz des bildes im html einnehmen damit andere elemente nicht nachrücken wenn das bild reinläd
     };
 
     // HTML extrahieren und bereinigen (optimiert - single pass)
@@ -102,7 +103,7 @@
 
             <img
                 src={getImageUrl(product)}
-                alt={getDescription(product)}
+                alt={getTitle(product)}
                 class="w-full h-auto rounded-xl object-cover"
             />
         </div>
