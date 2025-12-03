@@ -1,4 +1,6 @@
 <script>
+    import CourseIndicator from "./CourseIndicator.svelte";
+
     let { product } = $props();
 
     // Holt die deutsche Beschreibung aus translations
@@ -12,8 +14,11 @@
 </script>
 
 <a href="/veranstaltung/{product.id}" class="filterSlots">
-    <div>
-        Product ID: {product.id}
+    <div class="flex gap-2">
+        <div>
+            Product ID: {product.id}
+        </div>
+        <CourseIndicator {product} />
     </div>
     <div>
         <!-- kommen aus den bookings daher werden startDate nicht angezeigt -->

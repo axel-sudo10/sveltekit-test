@@ -1,5 +1,6 @@
 <script>
     import BookingSchedule from "./BookingSchedule.svelte";
+    import CourseIndicator from "./CourseIndicator.svelte";
 
     let { product, bookings } = $props();
 
@@ -71,9 +72,6 @@
         ) ?? [],
     );
 
-    // Prüft ob es ein Kurs ist
-    const isCourse = $derived(product.isCourse === true);
-
     // Event-Handler für Buttons
     const handleClose = () => {
         // TODO: Navigation zurück oder Modal schließen
@@ -98,12 +96,8 @@
                 <h2 class="text-base sm:text-lg font-medium text-black">
                     {getTitle(product)}
                 </h2>
-                <!-- Kursanzeige - nur rendern wenn isCourse true ist -->
-                {#if isCourse}
-                    <h2 class="text-base sm:text-lg font-extrabold text-black">
-                        Kurs
-                    </h2>
-                {/if}
+                <!-- Kursanzeige-Komponente -->
+                <CourseIndicator {product} />
             </div>
 
             <img
