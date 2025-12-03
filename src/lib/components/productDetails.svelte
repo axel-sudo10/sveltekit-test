@@ -84,7 +84,7 @@
 </script>
 
 <div
-    class="relative w-full h-full p-6 sm:p-10 lg:p-16 rounded-3xl shadow-md flex flex-col gap-6"
+    class="relative p-6 sm:p-10 lg:p-16 rounded-3xl shadow-md flex flex-col gap-6"
 >
     <!-- 2-spaltiger Bereich, mobil untereinander -->
     <div class="flex flex-col md:flex-row md:gap-8 gap-6 flex-wrap">
