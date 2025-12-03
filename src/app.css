@@ -1,12 +1,36 @@
+/**
+ * App.css Dokumentation:
+ *
+ * Diese Datei organisiert alle Custom CSS Klassen in Kategorien:
+ * 1. LAYOUT CONTAINER - Flex-basierte Layouts für Container
+ * 2. FILTER KOMPONENTEN - Filter-spezifische Elemente
+ * 3. TEXT & TYPOGRAFIE - Text-Styling und Überschriften
+ *
+ * Naming Convention:
+ * - camelCase für Klassennamen (z.B. .flexGapContainer)
+ * - snake_case für Varianten (z.B. .sub_text)
+ * - Alle Klassen nutzen @apply für Tailwind Integration
+ *
+ * Neue Klassen immer in die passende Kategorie einordnen!
+ */
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @reference "tailwindcss";
 
+/* ===== LAYOUT CONTAINER ===== */
+
+.flex-gap-container {
+    @apply flex flex-wrap gap-4;
+}
+
 .filter-container {
     @apply flex flex-wrap;
 }
+
+/* ===== FILTER KOMPONENTEN ===== */
 
 .filter-item {
     @apply min-w-[5rem] rounded-full border-2;
@@ -16,17 +40,12 @@
     @apply p-4 py-2 flex flex-col gap-2 bg-gray-800 rounded-lg text-white no-underline w-full block;
 }
 
-/* Container für flexible Items mit Abstände */
-.flex-gap-container {
-    @apply flex flex-wrap gap-4;
-}
+/* ===== TEXT & TYPOGRAFIE ===== */
 
-/* Sekundär-Text Styling (klein, grau) */
-.sub_text {
-    @apply text-sm text-gray-500;
-}
-
-/* Überschrift Level 3 Styling (große, fett, schwarz) */
 h3 {
     @apply text-lg font-medium text-black;
+}
+
+.sub_text {
+    @apply text-sm text-gray-500;
 }

@@ -248,9 +248,14 @@ Das Projekt nutzt Svelte 5 mit modernen "Runes":
 - Änderungen an `.svelte` und `.js` Dateien werden live reloaded
 - Keine manuelle Seiten-Aktualisierung nötig
 
-### CSS Klassen
+### CSS Klassen & Organisation
 - Alle Klassen müssen in den Tailwind Config registriert sein
 - Custom CSS in `src/app.css` für globale Styles
+- **Alle Custom Klassen sind in 3 Kategorien organisiert** (siehe `src/app.css` Header):
+  1. **LAYOUT CONTAINER** - Flex/Grid Layouts
+  2. **FILTER KOMPONENTEN** - Filter-spezifische Elemente
+  3. **TEXT & TYPOGRAFIE** - Text-Styling & Überschriften
+- Neue Klassen immer in passende Kategorie mit Kommentar einsortieren
 
 ## Häufige Aufgaben
 
