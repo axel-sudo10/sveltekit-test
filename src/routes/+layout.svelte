@@ -2,8 +2,7 @@
     import favicon from "$lib/assets/favicon.svg";
     import "../app.css";
 
-    import FilterMenu from "$lib/components/filterMenu.svelte";
-    import ProductList from "$lib/components/productList.svelte";
+    import FilterMenu from "$lib/components/filter/FilterMenu.svelte";
 
     let subscriptions = [
         "B1 1 Monat Basic",
