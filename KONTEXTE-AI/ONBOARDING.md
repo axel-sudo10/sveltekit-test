@@ -25,12 +25,17 @@ sveltekit-test/
 │   │           ├── +page.svelte      # Detail-Seite für Veranstaltung
 │   │           └── +page.js          # Load-Funktion mit parallelen API-Requests
 │   ├── lib/
-│   │   ├── components/               # Wiederverwendbare Svelte Components
-│   │   │   ├── filterMenu.svelte     # Filtermenu für Abos und Kategorien
-│   │   │   ├── productList.svelte    # Produktlisten-Container
-│   │   │   ├── productSlot.svelte    # Einzelne Produktkarte
-│   │   │   ├── productDetails.svelte # Produktdetails mit Bild, Beschreibung
-│   │   │   └── BookingSchedule.svelte # Wochen-Pagination für Buchungszeiten
+│   │   ├── components/               # Wiederverwendbare Svelte Components (kategorisiert)
+│   │   │   ├── booking/
+│   │   │   │   └── BookingSchedule.svelte    # Wochen-Pagination für Buchungszeiten
+│   │   │   ├── course/
+│   │   │   │   └── CourseIndicator.svelte    # Kurs-Indikator Badge
+│   │   │   ├── filter/
+│   │   │   │   └── FilterMenu.svelte         # Filtermenu für Abos und Kategorien
+│   │   │   └── product/
+│   │   │       ├── ProductDetails.svelte     # Produktdetails mit Bild, Beschreibung
+│   │   │       ├── ProductList.svelte        # Produktlisten-Container
+│   │   │       └── ProductSlot.svelte        # Einzelne Produktkarte
 │   │   ├── assets/                   # Statische Assets
 │   │   │   └── favicon.svg
 │   │   └── index.js                  # Library Exports
@@ -100,29 +105,31 @@ let categories = ["Bewegungskünste und Turnen", "Denksport", "Tools"];
 
 ### 4. Komponenten
 
-#### FilterMenu (`src/lib/components/filterMenu.svelte`)
+#### FilterMenu (`src/lib/components/filter/FilterMenu.svelte`)
 - Nimmt `subscriptions`, `categories`, und `onFilterChange` Handler entgegen
 - Gibt gefilterte Optionen an Parent-Komponente zurück
 
-#### ProductList (`src/lib/components/productList.svelte`)
+#### ProductList (`src/lib/components/product/ProductList.svelte`)
 - Rendert mehrere ProductSlot Komponenten
 - Grid Layout (1 Spalte mobil, 2 Tablets, 3 Desktop)
 - Nutzt Svelte 5 `$props()` für Props-Handling
 
-#### ProductSlot (`src/lib/components/productSlot.svelte`)
+#### ProductSlot (`src/lib/components/product/ProductSlot.svelte`)
 - Zeigt einzelne Produktkarte an
 - Enthält Produktinformationen wie Preis, Startdatum, Beschreibung
 - Verlinkt auf `/veranstaltung/[id]` für Details
+- Nutzt CourseIndicator für Kurs-Anzeige
 
-#### ProductDetails (`src/lib/components/productDetails.svelte`)
+#### ProductDetails (`src/lib/components/product/ProductDetails.svelte`)
 - Zeigt detaillierte Produktinformationen
 - Lädt Produktbild aus `documents` Array
 - Zeigt Beschreibung aus `translations`
 - Integriert BookingSchedule für Zeitplan
+- Nutzt CourseIndicator für Kurs-Anzeige
 - Props: `product`, `bookings`
 
-#### BookingSchedule (`src/lib/components/BookingSchedule.svelte`)
-**Neue Komponente für Buchungszeiten mit Wochen-Pagination**
+#### BookingSchedule (`src/lib/components/booking/BookingSchedule.svelte`)
+**Komponente für Buchungszeiten mit Wochen-Pagination**
 
 Features:
 - Gruppiert Bookings nach Kalenderwochen (Mo-So)
@@ -131,6 +138,11 @@ Features:
 - Startet automatisch bei der aktuellen Woche
 - Zeigt Verfügbarkeitsstatus: ✓ Frei / ✗ Voll
 - Responsive: Mobile übereinander, Desktop nebeneinander
+
+#### CourseIndicator (`src/lib/components/course/CourseIndicator.svelte`)
+- Zeigt Badge an, wenn Produkt ein Kurs ist (`isCourse === true`)
+- Wird in ProductSlot und ProductDetails verwendet
+- Props: `product`
 
 Datenstruktur:
 ```javascript
@@ -224,17 +236,19 @@ Das Projekt nutzt Svelte 5 mit modernen "Runes":
 
 ## Bekannte Probleme & Verbesserungen
 
+### ✅ Abgeschlossene Aufgaben
+- [x] **Komponenten-Namen korrigiert**: `filterMenu` → `FilterMenu`, `productSlot` → `ProductSlot` (PascalCase)
+- [x] **Komponenten-Struktur reorganisiert**: In kategorische Subdirectories aufgeteilt (booking/, course/, filter/, product/)
+- [x] **Alle Importe aktualisiert**: Routes und Komponenten verwenden neue Pfade
+
 ### Bestehende Issues
-1. **Tippfehler im Komponenten-Namen**: `poductDetails.svelte` statt `productDetails.svelte`
-2. **Filterlogik nicht implementiert**: FilterMenu ist vorhanden, aber Filter werden nicht angewendet
-3. **Produktdetail-Route nicht aktiv**: `/api/product/[id]/+page.js` existiert, ist aber nicht verlinkt
+1. **Filterlogik nicht implementiert**: FilterMenu ist vorhanden, aber Filter werden nicht auf ProductList angewendet
+2. **Produktdetail-Route existiert**: `/veranstaltung/[id]/` ist implementiert und funktioniert
 
 ### Nächste Schritte
-- [ ] Filter-Logik implementieren (Abos & Kategorien)
-- [ ] Produktdetails-Seite aufbauen mit Modal/neue Route
+- [ ] Filter-Logik implementieren (Abos & Kategorien anwenden)
 - [ ] Error Handling für API-Fehler verbessern
 - [ ] Loading States hinzufügen
-- [ ] Komponenten-Namen korrigieren
 - [ ] TypeScript Migration (optional)
 
 ## Entwickler-Tipps
@@ -260,9 +274,14 @@ Das Projekt nutzt Svelte 5 mit modernen "Runes":
 ## Häufige Aufgaben
 
 ### Neue Komponente hinzufügen
-1. Datei in `src/lib/components/` erstellen
+1. Neue Komponente in passender Kategorie erstellen:
+   - `src/lib/components/booking/` - Buchungs-bezogene Komponenten
+   - `src/lib/components/course/` - Kurs-bezogene Komponenten
+   - `src/lib/components/filter/` - Filter-bezogene Komponenten
+   - `src/lib/components/product/` - Produkt-bezogene Komponenten
 2. Svelte 5 Syntax nutzen (`$props()`, `$state()`)
 3. In Parent-Komponente importieren
+4. Importe mit korrektem relativen Pfad (z.B. `../booking/BookingSchedule.svelte`)
 
 ### API Endpoint erweitern
 1. Neue Route in `src/routes/api/` erstellen (z.B. `search/+server.js`)
@@ -297,5 +316,6 @@ git push origin feature/neue-funktion
 
 ---
 
-**Letzte Aktualisierung:** 2025-11-27
-**Projekt Status:** In aktiver Entwicklung - API Integration & UI-Refactoring
+**Letzte Aktualisierung:** 2025-12-03
+**Projekt Status:** In aktiver Entwicklung - API Integration & Filter-Logik
+**Letzte Änderung:** Komponenten-Struktur reorganisiert (booking/, course/, filter/, product/)

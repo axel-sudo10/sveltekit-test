@@ -3,6 +3,11 @@ svelte api test projekt mit js und tailwind
 
 erstelle keine +server.js!!!
 
+⚠️ **WICHTIG: GIT NICHT VERWENDEN!**
+- Benutze KEINE git Befehle (git add, git commit, etc.)
+- Der User führt Git-Operationen selbst durch
+- Fokus auf Code-Änderungen, nicht auf Git-Verwaltung
+
 ## Dokumentation - KONTEXTE-AI Ordner
 Alle wichtigen Dokumentationen und Best Practices sind im `KONTEXTE-AI/` Ordner:
 
