@@ -55,6 +55,7 @@
     };
 
     // Gültige Subscription-Präfixe
+    // TODO: nachfragen wie die SUBSCRIPTION richtig gefiltert werden können, so wie es jetzt ist stimmen sie nicht überein
     const VALID_SUBSCRIPTION_PREFIXES = ["B", "B1", "B2", "B3", "C", "D1"];
 
     // Prüft ob Subscription mit gültigem Präfix beginnt

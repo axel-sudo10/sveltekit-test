@@ -43,8 +43,7 @@
 
             // If a relevant booking is found, calculate and set the initial page
             if (firstRelevantIndex !== -1) {
-                currentPage =
-                    Math.floor(firstRelevantIndex / pageSize) + 1;
+                currentPage = Math.floor(firstRelevantIndex / pageSize) + 1;
             }
         }
     });
@@ -57,7 +56,7 @@
     let paginatedBookings = $derived(
         bookingsArray.slice(
             (currentPage - 1) * pageSize, // Start index for the current page
-            currentPage * pageSize,      // End index for the current page
+            currentPage * pageSize, // End index for the current page
         ),
     );
 
@@ -65,6 +64,11 @@
     const formatBooking = (booking) => {
         const date = new Date(booking.startDate);
         const dayName = date.toLocaleDateString("de-DE", { weekday: "long" });
+        const dateStr = date.toLocaleDateString("de-DE", {
+            day: "2-digit",
+            month: "2-digit",
+            year: "2-digit",
+        });
 
         const startTime = date.toLocaleTimeString("de-DE", {
             hour: "2-digit",
@@ -75,14 +79,11 @@
             minute: "2-digit",
         });
 
-        // Determine availability status based on available participant count
-        const isAvailable = booking.availableParticipantCount > 0;
-        const status = isAvailable ? "frei" : "voll"; // "free" or "full"
-
         return {
             dayName,
+            dateStr,
             timeRange: `${startTime} - ${endTime} Uhr`,
-            status,
+            availableCount: booking.availableParticipantCount ?? 0,
         };
     };
 </script>
@@ -107,7 +108,9 @@
 
         <!-- Current Page Information -->
         <!-- Displays the current page number and the total number of pages. -->
-        <span class="text-sm text-gray-600">Seite {currentPage} von {totalPages}</span>
+        <span class="text-sm text-gray-600"
+            >Seite {currentPage} von {totalPages}</span
+        >
 
         <!-- Next Page Button -->
         <!-- `onclick`: Increments `currentPage` to navigate to the next page. -->
@@ -130,22 +133,23 @@
             <div
                 class="flex aspect-square w-[6rem] flex-col justify-between bg-gray-50 p-3 pb-6 shadow-md"
             >
-                <!-- Card Header: Day Name and Status -->
-                <div class="flex w-full justify-between">
-                    <p>{formatted.dayName}</p>
-                    <!--
-                        Status Text: Dynamically styled based on availability.
-                    -->
-                    <p
-                        class:text-green-600={formatted.status === "frei"}
-                        class:text-red-600={formatted.status === "voll"}
-                    >
-                        {formatted.status}
-                    </p>
-                </div>
+                <!-- Card Header: Day Name -->
+                <p class="font-medium text-sm">{formatted.dayName}</p>
+
+                <!-- Date Display -->
+                <p class="text-xs text-gray-600">{formatted.dateStr}</p>
 
                 <!-- Time Range Display -->
-                <p class="mt-1 text-center text-xs">{formatted.timeRange}</p>
+                <p class="text-center text-xs">{formatted.timeRange}</p>
+
+                <!-- Available Participants Display -->
+                <p
+                    class="mt-auto text-center text-sm font-medium"
+                    class:text-green-600={formatted.availableCount > 0}
+                    class:text-red-600={formatted.availableCount === 0}
+                >
+                    {formatted.availableCount} Plätze
+                </p>
             </div>
         {:else}
             <!-- Fallback content if no booking appointments are available -->
@@ -155,4 +159,3 @@
         {/each}
     </div>
 </div>
-
