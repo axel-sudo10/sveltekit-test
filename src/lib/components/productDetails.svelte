@@ -141,6 +141,9 @@
     </div>
 
     <!-- Footer -->
+
+    <!-- Zeitbereiche mit Wochen-Pagination -->
+    <BookingSchedule {bookings} />
     <div class="flex justify-between items-center w-full mt-4">
         <button
             onclick={handleClose}
