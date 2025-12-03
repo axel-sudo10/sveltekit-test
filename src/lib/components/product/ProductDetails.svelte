@@ -1,6 +1,7 @@
 <script>
     import BookingSchedule from "../booking/BookingSchedule.svelte";
     import CourseIndicator from "../course/CourseIndicator.svelte";
+    import BookingButton from "../booking/bookingbutton.svelte";
 
     let { product, bookings } = $props();
 
@@ -77,11 +78,6 @@
     const handleClose = () => {
         // TODO: Navigation zurück oder Modal schließen
         window.history.back();
-    };
-
-    const handleBook = () => {
-        // TODO: Buchungslogik implementieren als eigenes component.
-        console.log("Buchen:", product.id);
     };
 </script>
 
@@ -176,12 +172,7 @@
             Schließen
         </button>
 
-        <button
-            onclick={handleBook}
-            class="px-6 py-2 rounded-md bg-primary text-white hover:bg-primary/90 transition-colors"
-        >
-            Buchen
-        </button>
+        <BookingButton {product} {bookings} />
     </div>
 
     <!-- Close Icon -->

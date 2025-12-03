@@ -13,7 +13,11 @@
     };
 </script>
 
-<a href="/veranstaltung/{product.id}" class="filterSlots">
+<a
+    href="/veranstaltung/{product.id}"
+    data-sveltekit-preload-data="tap"
+    class="filterSlots"
+>
     <div class="flex gap-2">
         <div>
             Product ID: {product.id}
