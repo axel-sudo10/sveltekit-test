@@ -84,14 +84,11 @@
 
         <!-- Rechte Spalte -->
         <div class="flex-1 min-w-[250px] flex flex-col gap-8">
-            <!-- Zeitbereiche mit Wochen-Pagination -->
-            <BookingSchedule {bookings} />
-
-            <!-- Verfügbar für -->
+            <!-- Voraussetzung -->
             {#if product.linkedSubscriptions && product.linkedSubscriptions.length > 0}
                 <div class="flex flex-col gap-4">
                     <h3 class="text-lg font-medium text-black">
-                        Verfügbar für:
+                        Voraussetzung:
                     </h3>
 
                     <div class="flex flex-wrap gap-4">
@@ -142,8 +139,9 @@
 
     <!-- Footer -->
 
-    <!-- Zeitbereiche mit Wochen-Pagination -->
+    <!-- bookings mit Pagination -->
     <BookingSchedule {bookings} />
+
     <div class="flex justify-between items-center w-full mt-4">
         <button
             onclick={handleClose}
