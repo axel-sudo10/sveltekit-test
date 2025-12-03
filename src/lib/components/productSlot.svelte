@@ -1,5 +1,14 @@
 <script>
     let { product } = $props();
+
+    // Holt die deutsche Beschreibung aus translations
+    const getGermanDescription = (translations) => {
+        if (!translations || translations.length === 0) {
+            return "No description available";
+        }
+        const germanTranslation = translations.find((t) => t.language === "de");
+        return germanTranslation?.description || "No description available";
+    };
 </script>
 
 <a href="/veranstaltung/{product.id}" class="filterSlots">
@@ -14,9 +23,7 @@
     <div>
         <p>
             <strong>Description:</strong>
-            {product.translations && product.translations.length > 0
-                ? product.translations[0].description
-                : "No description available"}
+            {getGermanDescription(product.translations)}
         </p>
         <p>
             <strong>Location:</strong>

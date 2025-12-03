@@ -71,6 +71,9 @@
         ) ?? [],
     );
 
+    // Prüft ob es ein Kurs ist
+    const isCourse = $derived(product.isCourse === true);
+
     // Event-Handler für Buttons
     const handleClose = () => {
         // TODO: Navigation zurück oder Modal schließen
@@ -90,10 +93,18 @@
     <div class="flex flex-col md:flex-row md:gap-8 gap-6 flex-wrap">
         <!-- Linke Spalte -->
         <div class="flex-1 min-w-[280px] md:min-w-[400px] flex flex-col gap-4">
-            <!-- titel -->
-            <h2 class="text-base sm:text-lg font-medium text-black">
-                {getTitle(product)}
-            </h2>
+            <!-- titel un information ob es ein kurs ist -->
+            <div class="flex flex-row gap-4">
+                <h2 class="text-base sm:text-lg font-medium text-black">
+                    {getTitle(product)}
+                </h2>
+                <!-- Kursanzeige - nur rendern wenn isCourse true ist -->
+                {#if isCourse}
+                    <h2 class="text-base sm:text-lg font-extrabold text-black">
+                        Kurs
+                    </h2>
+                {/if}
+            </div>
 
             <img
                 src={getImageUrl(product)}
