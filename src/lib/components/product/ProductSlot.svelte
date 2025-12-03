@@ -1,5 +1,5 @@
 <script>
-    import CourseIndicator from "./CourseIndicator.svelte";
+    import CourseIndicator from "../course/CourseIndicator.svelte";
 
     let { product } = $props();
 

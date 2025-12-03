@@ -1,5 +1,5 @@
 <script>
-    import ProductSlot from "./productSlot.svelte";
+    import ProductSlot from "./ProductSlot.svelte";
 
     // Typnecshreibung JSDoc konform besser darstellen
     /**

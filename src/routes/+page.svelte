@@ -1,5 +1,5 @@
 <script>
-    import ProductList from "$lib/components/productList.svelte";
+    import ProductList from "$lib/components/product/ProductList.svelte";
     /** @type {import('./$types').PageProps} */
     let { data } = $props();
 </script>

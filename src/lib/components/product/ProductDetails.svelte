@@ -1,6 +1,6 @@
 <script>
-    import BookingSchedule from "./BookingSchedule.svelte";
-    import CourseIndicator from "./CourseIndicator.svelte";
+    import BookingSchedule from "../booking/BookingSchedule.svelte";
+    import CourseIndicator from "../course/CourseIndicator.svelte";
 
     let { product, bookings } = $props();
 
@@ -79,7 +79,7 @@
     };
 
     const handleBook = () => {
-        // TODO: Buchungslogik implementieren
+        // TODO: Buchungslogik implementieren als eigenes component.
         console.log("Buchen:", product.id);
     };
 </script>
