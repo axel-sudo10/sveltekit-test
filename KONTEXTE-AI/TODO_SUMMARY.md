@@ -11,7 +11,7 @@ Hier ist eine Zusammenfassung aller `TODO`-Kommentare, die im Projekt gefunden w
 - **`ProductDetails.svelte`**:
     - Das `<img>`-Element sollte so implementiert werden, dass es den Platz für das Bild vor dem Laden reserviert, um ein Verschieben des Layouts (Layout Shift) zu verhindern.
     - Die Logik zum Filtern von `SUBSCRIPTION` muss geklärt und korrigiert werden, da sie aktuell nicht korrekt funktioniert.
-    - Es muss eine Funktion für die "Zurück"-Navigation oder zum Schließen eines Modals implementiert werden.
+    - Es muss eine Funktion für die "Zurück"-Navigation oder zum Schließen eines Modals implementiert werden. Frage?
 
 - **`bookingbutton.svelte`**:
     - Die Logik, die bestimmt, wann ein Produkt buchbar ist, muss genauer definiert und überarbeitet werden.

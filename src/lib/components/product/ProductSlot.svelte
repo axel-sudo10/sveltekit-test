@@ -9,7 +9,7 @@
             const baseUrl =
                 "https://storage.googleapis.com/static.production.regensburg.delcom.nl/";
             const fullUrl = baseUrl + product.documents[0].path;
-            console.log("🎨 Image loaded:", product.id, fullUrl);
+            // console.log("🎨 Image loaded:", product.id, fullUrl);
             return fullUrl;
         }
         console.warn("⚠️ No image for product:", product.id);
@@ -30,7 +30,7 @@
 
         console.warn(
             "⚠️ No German translation found. Available:",
-            translations.map((t) => t.language),
+            translations.map((t) => t.language), //TODO: hierbenötige ich noch einen ausput der mir sagt welche id nicht geladen hat
         );
         return "No description available";
     };

@@ -21,7 +21,8 @@
     let { products } = $props(); // Changed to $props()
 </script>
 
-<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12 p-8">
+<!-- TODO: nachfragen wie man am bessten die testdaten herausfiltern könnte -->
+<div class="productlist">
     {#each products as product (product.id)}
         <ProductSlot {product} page="home" />
     {:else}

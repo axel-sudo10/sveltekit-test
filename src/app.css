@@ -21,6 +21,9 @@
 @reference "tailwindcss";
 
 /* ===== LAYOUT CONTAINER ===== */
+.productlist {
+    @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12 p-8;
+}
 
 .flex-gap-container {
     @apply flex flex-wrap gap-4;
