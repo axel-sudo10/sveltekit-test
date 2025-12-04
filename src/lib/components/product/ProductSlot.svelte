@@ -1,4 +1,5 @@
 <script>
+    import { base } from "$app/paths";
     import CourseIndicator from "../course/CourseIndicator.svelte";
 
     let { product, page = "detail" } = $props();
@@ -17,9 +18,10 @@
     };
 
     // Holt die deutsche Beschreibung aus translations
-    const getGermanDescription = (translations) => {
+    const getGermanDescription = (product) => {
+        const { translations, id } = product;
         if (!translations?.length) {
-            console.warn("⚠️ No translations available");
+            console.warn("⚠️ No translations available for product:", id);
             return "No description available";
         }
 
@@ -29,8 +31,8 @@
         }
 
         console.warn(
-            "⚠️ No German translation found. Available:",
-            translations.map((t) => t.language), //TODO: hierbenötige ich noch einen ausput der mir sagt welche id nicht geladen hat
+            `⚠️ No German translation found for product: ${id}. Available:`,
+            translations.map((t) => t.language),
         );
         return "No description available";
     };
@@ -41,9 +43,7 @@
 {#if page === "home"}
     <!-- HOME STATE: Nur Bild mit CourseIndicator und Product ID -->
     <a
-        href="/veranstaltung/{product.id}"
-        data-sveltekit-preload-data="tap"
-        class="productSlotHome"
+        href="{base}/veranstaltung/{product.id}"
         style="position: relative; height: 250px;"
     >
         {#if imageUrl}
@@ -74,13 +74,14 @@
 {:else}
     <!-- DETAIL STATE: Vollständiges Layout mit Bild oben -->
     <a
-        href="/veranstaltung/{product.id}"
+        href="{base}/veranstaltung/{product.id}"
         data-sveltekit-preload-data="tap"
         class="filterSlots"
     >
         <!-- Kursinformation und Product ID -->
         <div class="flex gap-2">
             <div>
+                <!-- nur für entwicklung relevant -->
                 Product ID: {product.id}
             </div>
             <CourseIndicator {product} />
