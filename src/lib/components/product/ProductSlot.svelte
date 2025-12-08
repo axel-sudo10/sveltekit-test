@@ -37,6 +37,17 @@
         return "No description available";
     };
 
+    // Hilfsfunktion: Titel holen
+    const getTitle = (product) => {
+        if (product.translations?.length > 0) {
+            return (
+                product.translations[0].description ||
+                "Keine Beschreibung verfügbar"
+            );
+        }
+        return "Keine Beschreibung verfügbar";
+    };
+
     const imageUrl = $derived(getImageUrl(product));
 </script>
 
@@ -49,7 +60,7 @@
         {#if imageUrl}
             <img
                 src={imageUrl}
-                alt={getGermanDescription(product.translations)}
+                alt={getTitle(product)}
                 style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; border-radius: 0.5rem; z-index: 0;"
                 loading="lazy"
             />
@@ -63,7 +74,7 @@
             </div>
             <div>
                 <p class="text-white text-sm">
-                    {getGermanDescription(product.translations)}
+                    {getGermanDescription(product)}
                 </p>
             </div>
             <div class="productSlotProductIdBottom">
@@ -97,7 +108,7 @@
         <div>
             <p>
                 <strong>Description:</strong>
-                {getGermanDescription(product.translations)}
+                {getGermanDescription(product)}
             </p>
             <p>
                 <strong>Location:</strong>
@@ -110,7 +121,7 @@
         {#if imageUrl}
             <img
                 src={imageUrl}
-                alt={getGermanDescription(product.translations)}
+                alt={getGermanDescription(product)}
                 class="w-full h-48 rounded-lg object-cover"
             />
         {/if}
