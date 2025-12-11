@@ -10,7 +10,10 @@
     let { bookings, product } = $props();
 
     // Prüft ob es ein Kurs ist
-    const isCourse = $derived(product?.isCourse === true);
+    // Ein Product mit isCourse === true ist ein Kurs
+    // Ein Course-Objekt (aus product.courses) hat kein isCourse Property, ist aber immer ein Kurs
+    // Nur wenn isCourse explizit false ist, zeigen wir Booking-Buttons pro Slot
+    const isCourse = $derived(product?.isCourse !== false);
 
     // Booking URL generieren (nur für Produkte, nicht für Kurse)
     const getBookingUrl = (booking) => {

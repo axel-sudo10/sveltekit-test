@@ -11,6 +11,10 @@
         <div class="h-48 bg-gray-200 rounded animate-pulse"></div>
         <p class="text-gray-500">Loading event details...</p>
     {:then [product, bookings]}
-        <ProductDetails {product} {bookings} />
+        <ProductDetails
+            {product}
+            {bookings}
+            courseBookings={data.courseBookings}
+        />
     {/await}
 </div>

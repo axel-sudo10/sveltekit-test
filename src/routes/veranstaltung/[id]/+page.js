@@ -2,18 +2,40 @@ import { error } from "@sveltejs/kit";
 
 /** @type {import('./$types').PageLoad} */
 export async function load({ fetch, params }) {
-  // Svelte-native Streaming: Return Promises ohne zu warten
-  // Beide Requests starten parallel, aber werden nicht awaitet
+  // Product zuerst laden (mit join=courses)
+  const product = await fetchProductWithErrorHandling(fetch, params.id);
+
+  // Bookings für das Haupt-Product laden
+  const bookings = fetchBookingsWithErrorHandling(fetch, params.id);
+
+  // Wenn Courses vorhanden, Bookings für jeden Course laden
+  let courseBookings = {};
+  if (product.courses && product.courses.length > 0) {
+    const courseBookingPromises = product.courses.map(async (course) => {
+      const courseBookingData = await fetchBookingsWithErrorHandling(
+        fetch,
+        course.id,
+      );
+      return { courseId: course.id, bookings: courseBookingData };
+    });
+
+    const results = await Promise.all(courseBookingPromises);
+    results.forEach(({ courseId, bookings }) => {
+      courseBookings[courseId] = bookings;
+    });
+  }
+
   return {
-    product: fetchProductWithErrorHandling(fetch, params.id),
-    bookings: fetchBookingsWithErrorHandling(fetch, params.id),
+    product,
+    bookings,
+    courseBookings,
   };
 }
 
-// Helper: Product mit Error Handling
+// Helper: Product mit Error Handling (inkl. join=courses)
 async function fetchProductWithErrorHandling(fetch, id) {
   const res = await fetch(
-    `https://backbone-web-api.production.regensburg.delcom.nl/products/${id}?join=tags&join=location&join=documents&join=translations&join=linkedSubscriptions`,
+    `https://backbone-web-api.production.regensburg.delcom.nl/products/${id}?join=tags&join=location&join=documents&join=translations&join=linkedSubscriptions&join=courses`,
   );
 
   if (!res.ok) {

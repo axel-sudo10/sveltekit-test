@@ -3,10 +3,13 @@
     import CourseIndicator from "../course/CourseIndicator.svelte";
     import BookingButton from "../booking/bookingbutton.svelte";
 
-    let { product, bookings } = $props();
+    let { product, bookings, courseBookings = {} } = $props();
 
     // Prüft ob es ein Kurs ist
     const isCourse = $derived(product?.isCourse === true);
+
+    // Prüft ob Courses vorhanden sind
+    const hasCourses = $derived(product?.courses?.length > 0);
 
     // Hilfsfunktion: Erstes Bild aus documents holen
     const getImageUrl = (product) => {
@@ -165,21 +168,62 @@
 
     <!-- Footer -->
 
-    <!-- bookings mit Pagination -->
-    <BookingSchedule {bookings} {product} />
+    <!-- Courses mit jeweiligen Bookings anzeigen -->
+    {#if hasCourses}
+        <div class="flex flex-col gap-6">
+            {#each product.courses as course (course.id)}
+                <div class="border-t pt-4">
+                    <!-- Course Name -->
+                    <h3 class="text-base font-medium mb-3">
+                        {course.translations?.[0]?.description ||
+                            course.description ||
+                            `Kurs ${course.id}`}
+                    </h3>
 
-    <div class="flex justify-between items-center w-full mt-4">
-        <button
-            onclick={handleClose}
-            class="px-4 py-2 rounded-md text-primary hover:bg-gray-100 transition-colors"
-        >
-            Schließen
-        </button>
+                    <!-- Flexbox: BookingSchedule links, BookingButton rechts -->
+                    <div class="flex flex-wrap items-start gap-4">
+                        <div class="flex-1 min-w-[300px]">
+                            <BookingSchedule
+                                bookings={courseBookings[course.id]}
+                                product={course}
+                            />
+                        </div>
+                        <div class="flex-shrink-0">
+                            <BookingButton product={course} />
+                        </div>
+                    </div>
+                </div>
+            {/each}
+        </div>
+    {:else}
+        <!-- Fallback: Bestehendes Verhalten für einzelnes Product -->
+        <BookingSchedule {bookings} {product} />
 
-        {#if isCourse}
-            <BookingButton {product} />
-        {/if}
-    </div>
+        <div class="flex justify-between items-center w-full mt-4">
+            <button
+                onclick={handleClose}
+                class="px-4 py-2 rounded-md text-primary hover:bg-gray-100 transition-colors"
+            >
+                Schließen
+            </button>
+
+            {#if isCourse}
+                <BookingButton {product} />
+            {/if}
+        </div>
+    {/if}
+
+    <!-- Schließen Button (immer anzeigen wenn Courses vorhanden) -->
+    {#if hasCourses}
+        <div class="flex justify-start w-full mt-4">
+            <button
+                onclick={handleClose}
+                class="px-4 py-2 rounded-md text-primary hover:bg-gray-100 transition-colors"
+            >
+                Schließen
+            </button>
+        </div>
+    {/if}
 
     <!-- Close Icon -->
     <button
