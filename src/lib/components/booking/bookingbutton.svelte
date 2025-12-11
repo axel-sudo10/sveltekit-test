@@ -1,11 +1,5 @@
 <script>
-    let { product, bookings } = $props();
-
-    // TODO: muss noch genauer geschaut werden wann ein product buchbar ist
-    // Prüft ob maxParticipants null ist (null = zu Kalender hinzufügen, sonst = buchen)
-    // let isBookable = $derived(bookings.maxParticipants == null);
-
-    // console.log("BookingButton - isBookable:", isBookable);
+    let { product } = $props();
 
     // ICS-Datei für Kalender generieren (Dummy)
     // TODO: überarbeiten so das sinvolle und funktionirende ics ausgegeben werden
@@ -32,20 +26,26 @@ END:VCALENDAR`;
     //     URL.revokeObjectURL(url);
     // };
 
-    // Link zur Buchungsseite
-    const bookingUrl = `https://ur-sport.de/shop/products/${product.id}`;
+    // Kurs-Buchungs-URL generieren
+    const getCourseUrl = () => {
+        if (!product?.id) {
+            console.warn("⚠️ Product ID fehlt - Kurs-Buchung nicht möglich");
+            return null;
+        }
+        return `https://ur-sport.de/shop/courses/${product.id}`;
+    };
+
+    const courseUrl = getCourseUrl();
+
+    // Warnung ausgeben falls keine URL
+    if (!courseUrl) {
+        console.warn("⚠️ BookingButton: Keine gültige Kurs-URL", { product });
+    }
 </script>
 
-{#if false}
-    <!-- <button
-        onclick={generateICSFile}
-        class="px-6 py-2 rounded-md bg-primary text-white hover:bg-primary/90 transition-colors"
-    >
-        Zu Kalender hinzufügen
-    </button> -->
-{:else}
+{#if courseUrl}
     <a
-        href={bookingUrl}
+        href={courseUrl}
         target="_blank"
         rel="noopener noreferrer"
         class="px-6 py-2 rounded-md bg-gray-500 text-white hover:bg-primary/90 transition-colors"

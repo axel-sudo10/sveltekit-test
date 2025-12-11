@@ -5,6 +5,9 @@
 
     let { product, bookings } = $props();
 
+    // Prüft ob es ein Kurs ist
+    const isCourse = $derived(product?.isCourse === true);
+
     // Hilfsfunktion: Erstes Bild aus documents holen
     const getImageUrl = (product) => {
         if (product.documents?.length > 0 && product.documents[0]?.path) {
@@ -163,7 +166,7 @@
     <!-- Footer -->
 
     <!-- bookings mit Pagination -->
-    <BookingSchedule {bookings} />
+    <BookingSchedule {bookings} {product} />
 
     <div class="flex justify-between items-center w-full mt-4">
         <button
@@ -173,7 +176,9 @@
             Schließen
         </button>
 
-        <BookingButton {product} {bookings} />
+        {#if isCourse}
+            <BookingButton {product} />
+        {/if}
     </div>
 
     <!-- Close Icon -->

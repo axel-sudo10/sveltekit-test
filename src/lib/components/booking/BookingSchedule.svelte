@@ -6,7 +6,20 @@
 <script>
     // Component Properties
     // `bookings` prop contains the raw booking data fetched from an API.
-    let { bookings } = $props();
+    // `product` prop contains the product data to determine if it's a course.
+    let { bookings, product } = $props();
+
+    // Prüft ob es ein Kurs ist
+    const isCourse = $derived(product?.isCourse === true);
+
+    // Booking URL generieren (nur für Produkte, nicht für Kurse)
+    const getBookingUrl = (booking) => {
+        if (!booking?.uuid) {
+            console.warn("⚠️ Booking UUID fehlt", { bookingId: booking?.id });
+            return null;
+        }
+        return `https://consumer-frontend.production.regensburg.delcom.nl/bookings/${booking.uuid}`;
+    };
 
     // Pagination State
     // `pageSize`: Defines how many booking cards are displayed per page.
@@ -144,12 +157,32 @@
 
                 <!-- Available Participants Display -->
                 <p
-                    class="mt-auto text-center text-sm font-medium"
+                    class="text-center text-sm font-medium"
                     class:text-green-600={formatted.availableCount > 0}
                     class:text-red-600={formatted.availableCount === 0}
                 >
                     {formatted.availableCount} Plätze
                 </p>
+
+                <!-- Buchen Button (nur für Produkte, nicht für Kurse) -->
+                {#if !isCourse}
+                    {@const bookingUrl = getBookingUrl(booking)}
+                    {#if bookingUrl}
+                        <a
+                            href={bookingUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            class="mt-2 px-2 py-1 text-xs rounded bg-gray-500 text-white hover:bg-primary/90 transition-colors text-center"
+                        >
+                            Buchen
+                        </a>
+                    {:else}
+                        <!-- DEBUG: Fallback-Text wenn UUID fehlt -->
+                        <span class="mt-2 px-2 py-1 text-xs text-center">
+                            Nicht buchbar
+                        </span>
+                    {/if}
+                {/if}
             </div>
         {:else}
             <!-- Fallback content if no booking appointments are available -->
