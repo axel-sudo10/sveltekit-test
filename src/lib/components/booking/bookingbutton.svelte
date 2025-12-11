@@ -2,6 +2,8 @@
     let { product } = $props();
 
     // ICS-Datei für Kalender generieren (Dummy)
+    // TODO: alle eventualitäten finden indenen keine buchung möglich ist und dann den button ausblenden
+    // zb: kursvoll, kurs ist offen, kursfindet noch garnicht stadt
     // TODO: überarbeiten so das sinvolle und funktionirende ics ausgegeben werden
     // const generateICSFile = () => {
     const icsContent = `BEGIN:VCALENDAR
