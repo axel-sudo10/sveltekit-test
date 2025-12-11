@@ -28,21 +28,36 @@ END:VCALENDAR`;
     //     URL.revokeObjectURL(url);
     // };
 
-    // Kurs-Buchungs-URL generieren
-    const getCourseUrl = () => {
-        if (!product?.id) {
-            console.warn("⚠️ Product ID fehlt - Kurs-Buchung nicht möglich");
+    // Validierung und URL-Generierung mit detaillierten Warnings
+    const getBookingUrl = () => {
+        if (!product) {
+            console.warn("⚠️ BookingButton: Kein Produkt übergeben");
             return null;
         }
+
+        if (!product.id) {
+            console.warn("⚠️ BookingButton: Product ID fehlt", { product });
+            return null;
+        }
+
+        // Weitere Checks (für später vorbereitet):
+        // if (product.isFull) {
+        //     console.warn("⚠️ BookingButton: Kurs ist voll", { id: product.id });
+        //     return null;
+        // }
+        // if (product.status === 'cancelled') {
+        //     console.warn("⚠️ BookingButton: Kurs abgesagt", { id: product.id });
+        //     return null;
+        // }
+        // if (product.status === 'draft') {
+        //     console.warn("⚠️ BookingButton: Kurs nicht veröffentlicht", { id: product.id });
+        //     return null;
+        // }
+
         return `https://ur-sport.de/shop/courses/${product.id}`;
     };
 
-    const courseUrl = getCourseUrl();
-
-    // Warnung ausgeben falls keine URL
-    if (!courseUrl) {
-        console.warn("⚠️ BookingButton: Keine gültige Kurs-URL", { product });
-    }
+    const courseUrl = getBookingUrl();
 </script>
 
 {#if courseUrl}
