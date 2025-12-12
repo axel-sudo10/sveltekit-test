@@ -6,7 +6,7 @@ export async function load({ fetch, params }) {
   const product = await fetchProduct(params.id, fetch);
 
   // Bookings für das Haupt-Product laden
-  const bookings = fetchBookings(params.id, { customFetch: fetch });
+  const bookings = await fetchBookings(params.id, { customFetch: fetch });
 
   // Heutiges Datum für Filter (auf Mitternacht normalisiert)
   const today = new Date();
@@ -18,8 +18,12 @@ export async function load({ fetch, params }) {
 
   if (product.courses && product.courses.length > 0) {
     const courseBookingPromises = product.courses.map(async (course) => {
-      const courseBookingData = await fetchBookings(course.id, {
+      // FIX: Slots sind am PARENT Product (params.id) aufgehängt, aber mit courseId markiert!
+      // Wir suchen also: linkedProductId = params.id AND courseId = course.id
+      const courseBookingData = await fetchBookings(params.id, {
         customFetch: fetch,
+        limit: 300,
+        query: { courseId: course.id }
       });
       return { course, bookings: courseBookingData };
     });
@@ -27,24 +31,376 @@ export async function load({ fetch, params }) {
     const results = await Promise.all(courseBookingPromises);
 
     results.forEach(({ course, bookings: courseBookingData }) => {
-      // 1. Prüfe ob Bookings vorhanden
-      const hasBookings = courseBookingData?.data?.length > 0;
+      // Datum parsen
+      const courseStart = course.startDate ? new Date(course.startDate) : null;
+      const courseEnd = course.endDate ? new Date(course.endDate) : null;
+      const bookingsRaw = courseBookingData?.data || [];
 
-      // 2. Prüfe ob Course gültig ist (endDate muss existieren UND > heute)
-      const endDate = course.endDate ? new Date(course.endDate) : null;
-      const isValid = endDate && endDate > today;
+      console.group(`Filter-Check für Kurs: ${course.id}`);
+      console.log(`Zeitraum: ${courseStart?.toISOString()} bis ${courseEnd?.toISOString()}`);
+      console.log(`Bookings vor Filter: ${bookingsRaw.length}`);
 
-      // Nur hinzufügen wenn Bookings vorhanden UND gültiges endDate
-      if (hasBookings && isValid) {
-        courseBookings[course.id] = courseBookingData;
-        filteredCourses.push(course);
+      // 1. Filter Bookings: Müssen im Kurs-Zeitraum liegen
+      // Overlap Logic: (BookingStart < CourseEnd) && (BookingEnd > CourseStart)
+      
+      const validBookings = bookingsRaw.filter((booking) => {
+        if (!courseStart || !courseEnd) return true; // Ohne Kurs-Daten kein Filter (oder strict false?) -> Hier permissive
+
+        // FIX: API liefert startDate/endDate, nicht start/date
+        const bookStart = new Date(booking.startDate); 
+        const bookEnd = booking.endDate ? new Date(booking.endDate) : new Date(bookStart.getTime() + 60*60*1000); // 1h Fallback
+
+        // Check for invalid dates
+        if (isNaN(bookStart.getTime())) return false;
+
+        // Strict Check: Booking darf nicht VOR dem Kurs beginnen
+        if (bookStart < courseStart) return false;
+
+        const overlaps = bookStart < courseEnd && bookEnd > courseStart;
+        return overlaps;
+      });
+
+      console.log(`Bookings nach Zeitraum-Filter: ${validBookings.length}`);
+
+      // 2. Prüfe ob Bookings vorhanden sind
+      const hasBookings = validBookings.length > 0;
+
+      
+
+        
+
+      
+
+              // 3. Prüfe ob Course gültig ist
+
+      
+
+              const availableTill = course.availableTillDate ? new Date(course.availableTillDate) : null;
+
+      
+
+              
+
+      
+
+              // Logik: Kurs ist aktiv, wenn availableTill > heute ODER (falls nicht gesetzt) endDate > heute
+
+      
+
+              let isCourseActive = false;
+
+      
+
+              if (availableTill) {
+
+      
+
+                  isCourseActive = availableTill > today;
+
+      
+
+              } else if (courseEnd) {
+
+      
+
+                  isCourseActive = courseEnd > today;
+
+      
+
+              }
+
+      
+
+        
+
+      
+
+              if (!isCourseActive) {
+
+      
+
+                 console.log(`Ausschluss: Kurs nicht mehr verfügbar/abgelaufen.`);
+
+      
+
+              } else if (!hasBookings) {
+
+      
+
+                 console.log(`Ausschluss: Keine passenden Bookings im Zeitraum.`);
+
+      
+
+              } else {
+
+      
+
+                 console.log(`-> Kurs AKZEPTIERT.`);
+
+      
+
+              }
+
+      
+
+              console.groupEnd();
+
+      
+
+        
+
+      
+
+              // Nur hinzufügen wenn Bookings vorhanden UND aktiv
+
+      
+
+              if (hasBookings && isCourseActive) {
+
+      
+
+                // WICHTIG: Wir speichern die GEFILTERTEN Bookings, nicht die rohen!
+
+      
+
+                // Wir müssen die Struktur von courseBookingData beibehalten
+
+      
+
+                courseBookings[course.id] = { ...courseBookingData, data: validBookings };
+
+      
+
+                filteredCourses.push(course);
+
+      
+
+              }
+
+      
+
+            });
+
+      
+
+          }
+
+      
+
+        
+
+      
+
+          // GLOBALER FILTER für 'bookings' (Parent Bookings)
+
+      
+
+          // Falls alle Kurse rausgefiltert wurden, greift ProductDetails auf 'bookings' zurück.
+
+      
+
+          // Diese müssen auch bereinigt werden, damit keine abgelaufenen Kurs-Buchungen auftauchen.
+
+      
+
+          if (bookings && bookings.data && product.courses) {
+
+      
+
+              const coursesMap = new Map(product.courses.map(c => [c.id, c]));
+
+      
+
+              
+
+      
+
+              bookings.data = bookings.data.filter(b => {
+
+      
+
+                  // const today = new Date(); 
+
+      
+
+                  // today.setHours(0,0,0,0);
+
+      
+
+                  const bStart = new Date(b.startDate);
+
+      
+
+        
+
+      
+
+                  // HINWEIS: Filter auf "vergangene Buchungen" entfernt, da User auch abgelaufene Sessions 
+
+      
+
+                  // sehen will, solange der Kurs (availableTill) noch aktiv ist.
+
+      
+
+                  // if (bStart < today) return false; 
+
+      
+
+        
+
+      
+
+                  if (!b.courseId) return true; // Kein Kurs-Bezug -> Behalten
+
+      
+
+                  
+
+      
+
+                  const course = coursesMap.get(b.courseId);
+
+      
+
+                  if (!course) return true; // Kurs nicht im Produkt -> Behalten
+
+      
+
+        
+
+      
+
+                  const courseStart = course.startDate ? new Date(course.startDate) : null;
+
+      
+
+                  // const courseEnd = course.endDate ? new Date(course.endDate) : null;
+
+      
+
+                  
+
+      
+
+                  // Wir prüfen hier NICHT auf courseEnd, da der Kurs selbst entscheiden soll (s.o. isCourseActive logic).
+
+      
+
+                  // Aber hier im globalen Filter haben wir 'isCourseActive' nicht direkt pro Booking verfügbar,
+
+      
+
+                  // es sei denn wir replizieren die Logik.
+
+      
+
+                  // Einfacher: Wir prüfen nur "Booking vor Kurs-Start".
+
+      
+
+                  // Ob der Kurs abgelaufen ist, wurde bereits beim Aufbau von 'filteredCourses' entschieden.
+
+      
+
+                  // Aber 'bookings' ist die RAW liste.
+
+      
+
+                  // Wir sollten Buchungen von "wirklich abgelaufenen" Kursen entfernen.
+
+      
+
+                  
+
+      
+
+                  const availableTill = course.availableTillDate ? new Date(course.availableTillDate) : null;
+
+      
+
+                  const cEnd = course.endDate ? new Date(course.endDate) : null;
+
+      
+
+                  const today = new Date();
+
+      
+
+                  today.setHours(0,0,0,0);
+
+      
+
+        
+
+      
+
+                  let isCActive = false;
+
+      
+
+                  if (availableTill) isCActive = availableTill > today;
+
+      
+
+                  else if (cEnd) isCActive = cEnd > today;
+
+      
+
+        
+
+      
+
+                  if (!isCActive) return false; // Buchung gehört zu inaktivem Kurs -> Weg
+
+      
+
+        
+
+      
+
+                  // 2. Booking vor Kurs-Start?
+
+      
+
+                  if (courseStart && bStart < courseStart) return false;
+
+      
+
+        
+
+      
+
+                  return true;
+
+      
+
+              });
+
+      
+
+          }
+
+      
+
+        
+
+      
+
+        
+
+      
+
+        return {
+
+          product: { ...product, courses: filteredCourses },
+
+          bookings,
+
+          courseBookings,
+
+        };
+
       }
-    });
-  }
 
-  return {
-    product: { ...product, courses: filteredCourses },
-    bookings,
-    courseBookings,
-  };
-}
+      

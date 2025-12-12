@@ -6,7 +6,7 @@ const API_BASE_URL = 'https://backbone-web-api.production.regensburg.delcom.nl';
  * Holt Produkte von der API
  */
 export async function fetchProducts(options = {}) {
-	const { limit = 100, page = 1, customFetch = fetch } = options;
+	const { limit = 200, page = 1, customFetch = fetch } = options;
 
 	const params = new URLSearchParams([
 		['limit', String(limit)],
@@ -49,12 +49,15 @@ export async function fetchProduct(id, customFetch = fetch) {
  * Holt Buchungen für ein Produkt
  */
 export async function fetchBookings(productId, options = {}) {
-	const { limit = 60, page = 1, customFetch = fetch } = options;
+	const { limit = 60, page = 1, customFetch = fetch, query = {} } = options;
+
+	const defaultQuery = { linkedProductId: { $in: [productId] } };
+	const finalQuery = { ...defaultQuery, ...query };
 
 	const params = new URLSearchParams([
 		['limit', String(limit)],
 		['page', String(page)],
-		['s', JSON.stringify({ linkedProductId: { $in: [productId] } })]
+		['s', JSON.stringify(finalQuery)]
 	]);
 
 	const res = await customFetch(`${API_BASE_URL}/bookings?${params}`);

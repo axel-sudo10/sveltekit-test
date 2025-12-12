@@ -7,7 +7,18 @@
     // Component Properties
     // `bookings` prop contains the raw booking data fetched from an API.
     // `product` prop contains the product data to determine if it's a course.
-    let { bookings, product } = $props();
+    let { bookings, product, minDate, maxDate } = $props();
+
+    // Debugging: Logge den Zeitraum falls vorhanden
+    $effect(() => {
+        if (minDate || maxDate) {
+             console.log("BookingSchedule Range Limit:", {
+                minDate: minDate ? new Date(minDate).toLocaleDateString() : 'none',
+                maxDate: maxDate ? new Date(maxDate).toLocaleDateString() : 'none',
+                productId: product?.id
+             });
+        }
+    });
 
     // Prüft ob es ein Kurs ist
     // Ein Product mit isCourse === true ist ein Kurs

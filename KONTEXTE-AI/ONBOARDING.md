@@ -168,6 +168,43 @@ Logik:
 - Berechnet `maxParticipants` falls `null`: `currentParticipantCount + availableParticipantCount`
 - `available = availableParticipantCount > 0`
 
+## Daten-Logik & Filtering (Veranstaltungen)
+
+Die Detail-Seite `/veranstaltung/[id]` implementiert komplexe Logik zur Filterung von Kursen und Buchungen.
+
+### 1. Datenstruktur
+- **Produkt (Parent):** Das Hauptprodukt (z.B. ID 66 "QiGong"). Kann "Courses" enthalten.
+- **Kurse (Children):** In `product.courses` enthalten. Eigene Entitäten mit `startDate`, `endDate`, `availableTillDate`.
+- **Slots (Bookings):**
+    - Hängen am **Parent Product** (`linkedProductId = ParentID`).
+    - Sind über das Feld `courseId` einem spezifischen Kurs zugeordnet.
+    - "Verwaiste" Buchungen (ohne `courseId`) können existieren, werden aber gefiltert.
+
+### 2. Kurs-Gültigkeit (Active State)
+Ein Kurs wird als "aktiv" angezeigt, wenn:
+1.  **Priorität:** `availableTillDate` existiert und liegt in der **Zukunft**.
+    - Dies erlaubt die Anzeige von Kursen, deren Sessions (`endDate`) bereits vorbei sind, die aber noch buchbar/sichtbar sein sollen (z.B. zur Nachschau).
+2.  **Fallback:** Wenn kein `availableTillDate` gesetzt ist, muss `endDate` (letzte Session) in der **Zukunft** liegen.
+
+-> Abgelaufene Kurse werden komplett ausgeblendet.
+
+### 3. Buchungs-Filterung (Global & Pro Kurs)
+Buchungen werden auf zwei Ebenen gefiltert:
+1.  **Pro Kurs:** Nur Buchungen, die zu diesem Kurs gehören (`courseId`).
+2.  **Global (Fallback):** Wenn keine Kurse angezeigt werden (oder als Fallback-Liste), wird die Parent-Booking-Liste gefiltert.
+
+**Filter-Regeln:**
+- **Zu früh:** Buchung `startDate` < Kurs `startDate` -> **Ausgeblendet** (Verhindert Anzeige von Setup-Terminen oder Fehlbuchungen).
+- **Inaktiver Kurs:** Buchungen, die zu einem inaktiven/abgelaufenen Kurs gehören -> **Ausgeblendet**.
+- **Vergangenheit:** 
+    - Generell werden vergangene Buchungen angezeigt, **sofern** der zugehörige Kurs noch als "aktiv" gilt (siehe oben).
+    - Verwaiste Buchungen (ohne `courseId`) in der Vergangenheit werden ausgeblendet.
+
+### 4. API Besonderheiten
+- `fetchBookings` muss `await` verwenden (Promise).
+- Buchungs-Daten haben Felder `startDate`/`endDate` (nicht `start`/`end` wie manchmal angenommen).
+- Pagination Limit ist standardmäßig 60. Für Kurse mit vielen Slots wurde es auf **300** erhöht, um Lücken in der Zukunft zu vermeiden.
+
 ## Setup & Entwicklung
 
 ### Installation

@@ -186,6 +186,8 @@
                             <BookingSchedule
                                 bookings={courseBookings[course.id]}
                                 product={course}
+                                minDate={course.startDate}
+                                maxDate={course.endDate}
                             />
                         </div>
                         <div class="flex-shrink-0">
@@ -197,7 +199,12 @@
         </div>
     {:else}
         <!-- Fallback: Bestehendes Verhalten für einzelnes Product -->
-        <BookingSchedule {bookings} {product} />
+        <BookingSchedule
+            {bookings}
+            {product}
+            minDate={product.startDate}
+            maxDate={product.endDate}
+        />
 
         <div class="flex justify-between items-center w-full mt-4">
             <button
