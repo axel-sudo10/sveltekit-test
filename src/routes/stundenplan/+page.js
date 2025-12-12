@@ -1,19 +1,10 @@
-import { error } from "@sveltejs/kit";
+import { fetchProducts } from "$lib/api";
 
 /** @type {import('./$types').PageLoad} */
 export async function load({ fetch }) {
-    const res = await fetch(
-        `https://backbone-web-api.production.regensburg.delcom.nl/products?join=tags&join=translations&join=location&limit=20&page=1&s=${encodeURIComponent(JSON.stringify({ isActive: 1, "tags.activeState": true, allowAsLinkedProduct: true }))}`,
-    );
+  const productsData = await fetchProducts({ limit: 20, customFetch: fetch });
 
-    if (!res.ok) {
-        error(res.status, "Failed to fetch products from external API.");
-    }
-
-    const productsData = await res.json();
-
-    //TODO: spätere implemation von fetch requests für abonnements und kategorien
-    return {
-        products: productsData.products || productsData.data || [],
-    };
+  return {
+    products: productsData.products || productsData.data || [],
+  };
 }

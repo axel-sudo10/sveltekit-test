@@ -1,21 +1,20 @@
-import { error } from "@sveltejs/kit";
+import { fetchProduct, fetchBookings } from "$lib/api";
 
 /** @type {import('./$types').PageLoad} */
 export async function load({ fetch, params }) {
   // Product zuerst laden (mit join=courses)
-  const product = await fetchProductWithErrorHandling(fetch, params.id);
+  const product = await fetchProduct(params.id, fetch);
 
   // Bookings für das Haupt-Product laden
-  const bookings = fetchBookingsWithErrorHandling(fetch, params.id);
+  const bookings = fetchBookings(params.id, { customFetch: fetch });
 
   // Wenn Courses vorhanden, Bookings für jeden Course laden
   let courseBookings = {};
   if (product.courses && product.courses.length > 0) {
     const courseBookingPromises = product.courses.map(async (course) => {
-      const courseBookingData = await fetchBookingsWithErrorHandling(
-        fetch,
-        course.id,
-      );
+      const courseBookingData = await fetchBookings(course.id, {
+        customFetch: fetch,
+      });
       return { courseId: course.id, bookings: courseBookingData };
     });
 
@@ -30,30 +29,4 @@ export async function load({ fetch, params }) {
     bookings,
     courseBookings,
   };
-}
-
-// Helper: Product mit Error Handling (inkl. join=courses)
-async function fetchProductWithErrorHandling(fetch, id) {
-  const res = await fetch(
-    `https://backbone-web-api.production.regensburg.delcom.nl/products/${id}?join=tags&join=location&join=documents&join=translations&join=linkedSubscriptions&join=courses`,
-  );
-
-  if (!res.ok) {
-    error(res.status, "Failed to fetch product from external API.");
-  }
-
-  return await res.json();
-}
-
-// Helper: Bookings mit Error Handling
-async function fetchBookingsWithErrorHandling(fetch, id) {
-  const res = await fetch(
-    `https://backbone-web-api.production.regensburg.delcom.nl/bookings?limit=60&page=1&s={"linkedProductId":{"$in":[${id}]}}`,
-  );
-
-  if (!res.ok) {
-    error(res.status, "Failed to fetch bookings from external API.");
-  }
-
-  return await res.json();
 }
