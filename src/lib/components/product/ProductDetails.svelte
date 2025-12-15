@@ -91,8 +91,20 @@
             ...Object.values(courseBookings).flatMap((cb) => cb.data || []),
         ];
 
+        // Filter: Nur aktuelle/zukünftige Buchungen berücksichtigen
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        const activeBookings = allBookings.filter((b) => {
+            if (!b.startDate) return false;
+            const start = new Date(b.startDate);
+            // Optional: Auch laufende berücksichtigen (endDate > today)
+            // Hier simple Logik: Startdatum >= Heute 00:00
+            return start >= today;
+        });
+
         // Unique linkedProductIds sammeln
-        const ids = new Set(allBookings.map((b) => b.productId).filter(Boolean));
+        const ids = new Set(activeBookings.map((b) => b.productId).filter(Boolean));
 
         const names = new Set();
         for (const id of ids) {
