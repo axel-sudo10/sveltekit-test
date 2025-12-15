@@ -35,12 +35,37 @@ END:VCALENDAR` : null;
             return null;
         }
 
-        if (!product.id) {
-            console.warn("⚠️ BookingButton: Product ID fehlt", { product });
+        // 1. Priorität: Explizite courseId
+        let idToUse = product.courseId;
+
+        // 2. Priorität: Falls Parent Product mit Courses Struktur
+        if (!idToUse && product.courses) {
+            // Check if it's an array and has elements
+            if (Array.isArray(product.courses) && product.courses.length > 0) {
+                idToUse = product.courses[0].id;
+            } 
+            // Check if it's a single object (User Suggestion: product.courses.id)
+            else if (product.courses.id) {
+                idToUse = product.courses.id;
+            }
+        }
+
+        // 3. Priorität: Fallback ID (firstCourseId aus Page Load)
+        if (!idToUse && product.firstCourseId) {
+            idToUse = product.firstCourseId;
+        }
+
+        // 4. Priorität: Standard ID (Product ID oder Course ID)
+        if (!idToUse) {
+            idToUse = product.id;
+        }
+
+        if (!idToUse) {
+            console.warn("⚠️ BookingButton: Product/Course ID fehlt", { product });
             return null;
         }
 
-        return `https://ur-sport.de/shop/courses/${product.id}`;
+        return `https://ur-sport.de/shop/courses/${idToUse}`;
     };
 
     // Validierung und URL-Generierung für einzelne Buchungslots

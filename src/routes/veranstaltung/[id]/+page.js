@@ -191,43 +191,7 @@ export async function load({ fetch, params }) {
 
       
 
-          // GLOBALER FILTER für 'bookings' (Parent Bookings)
-
-      
-
-          // Falls alle Kurse rausgefiltert wurden, greift ProductDetails auf 'bookings' zurück.
-
-      
-
-          // Diese müssen auch bereinigt werden, damit keine abgelaufenen Kurs-Buchungen auftauchen.
-
-      
-
-          if (bookings && bookings.data && product.courses) {
-
-      
-
-              const coursesMap = new Map(product.courses.map(c => [c.id, c]));
-
-      
-
-              
-
-      
-
-              bookings.data = bookings.data.filter(b => {
-
-      
-
-                  // const today = new Date(); 
-
-      
-
-                  // today.setHours(0,0,0,0);
-
-      
-
-                  const bStart = new Date(b.startDate);
+                    // GLOBALER FILTER für 'bookings' (Parent Bookings)
 
       
 
@@ -235,15 +199,7 @@ export async function load({ fetch, params }) {
 
       
 
-                  // HINWEIS: Filter auf "vergangene Buchungen" entfernt, da User auch abgelaufene Sessions 
-
-      
-
-                  // sehen will, solange der Kurs (availableTill) noch aktiv ist.
-
-      
-
-                  // if (bStart < today) return false; 
+          
 
       
 
@@ -251,7 +207,67 @@ export async function load({ fetch, params }) {
 
       
 
-                  if (!b.courseId) return true; // Kein Kurs-Bezug -> Behalten
+                    // Falls alle Kurse rausgefiltert wurden, greift ProductDetails auf 'bookings' zurück.
+
+      
+
+        
+
+      
+
+          
+
+      
+
+        
+
+      
+
+                    // Diese müssen auch bereinigt werden, damit keine abgelaufenen Kurs-Buchungen auftauchen.
+
+      
+
+        
+
+      
+
+          
+
+      
+
+        
+
+      
+
+                    if (bookings && bookings.data && product.courses) {
+
+      
+
+        
+
+      
+
+                        // ... (code omitted for brevity in replace block, but must match exact lines)
+
+      
+
+        
+
+      
+
+                        // Wait, I need to match exact context. I will use the "return" block which is unique.
+
+      
+
+        
+
+      
+
+                    }
+
+      
+
+        
 
       
 
@@ -259,11 +275,11 @@ export async function load({ fetch, params }) {
 
       
 
-                  const course = coursesMap.get(b.courseId);
+        
 
       
 
-                  if (!course) return true; // Kurs nicht im Produkt -> Behalten
+                    // Save first course ID for fallback before overwriting courses
 
       
 
@@ -271,63 +287,7 @@ export async function load({ fetch, params }) {
 
       
 
-                  const courseStart = course.startDate ? new Date(course.startDate) : null;
-
-      
-
-                  // const courseEnd = course.endDate ? new Date(course.endDate) : null;
-
-      
-
-                  
-
-      
-
-                  // Wir prüfen hier NICHT auf courseEnd, da der Kurs selbst entscheiden soll (s.o. isCourseActive logic).
-
-      
-
-                  // Aber hier im globalen Filter haben wir 'isCourseActive' nicht direkt pro Booking verfügbar,
-
-      
-
-                  // es sei denn wir replizieren die Logik.
-
-      
-
-                  // Einfacher: Wir prüfen nur "Booking vor Kurs-Start".
-
-      
-
-                  // Ob der Kurs abgelaufen ist, wurde bereits beim Aufbau von 'filteredCourses' entschieden.
-
-      
-
-                  // Aber 'bookings' ist die RAW liste.
-
-      
-
-                  // Wir sollten Buchungen von "wirklich abgelaufenen" Kursen entfernen.
-
-      
-
-                  
-
-      
-
-                  const availableTill = course.availableTillDate ? new Date(course.availableTillDate) : null;
-
-      
-
-                  const cEnd = course.endDate ? new Date(course.endDate) : null;
-
-      
-
-                  const today = new Date();
-
-      
-
-                  today.setHours(0,0,0,0);
+                    const firstCourseId = product.courses && product.courses.length > 0 ? product.courses[0].id : null;
 
       
 
@@ -335,15 +295,7 @@ export async function load({ fetch, params }) {
 
       
 
-                  let isCActive = false;
-
-      
-
-                  if (availableTill) isCActive = availableTill > today;
-
-      
-
-                  else if (cEnd) isCActive = cEnd > today;
+          
 
       
 
@@ -351,7 +303,7 @@ export async function load({ fetch, params }) {
 
       
 
-                  if (!isCActive) return false; // Buchung gehört zu inaktivem Kurs -> Weg
+                    return {
 
       
 
@@ -359,11 +311,7 @@ export async function load({ fetch, params }) {
 
       
 
-                  // 2. Booking vor Kurs-Start?
-
-      
-
-                  if (courseStart && bStart < courseStart) return false;
+                      product: { ...product, courses: filteredCourses, firstCourseId },
 
       
 
@@ -371,15 +319,7 @@ export async function load({ fetch, params }) {
 
       
 
-                  return true;
-
-      
-
-              });
-
-      
-
-          }
+                      bookings,
 
       
 
@@ -387,20 +327,22 @@ export async function load({ fetch, params }) {
 
       
 
+                      courseBookings,
+
+      
+
         
 
       
 
-        return {
+                    };
 
-          product: { ...product, courses: filteredCourses },
+      
 
-          bookings,
+        
 
-          courseBookings,
+      
 
-        };
-
-      }
+                }
 
       
