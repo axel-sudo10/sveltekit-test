@@ -15,6 +15,7 @@
             {product}
             {bookings}
             courseBookings={data.courseBookings}
+            locationResources={data.locationResources}
         />
     {/await}
 </div>

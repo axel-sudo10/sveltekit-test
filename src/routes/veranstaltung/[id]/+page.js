@@ -191,7 +191,7 @@ export async function load({ fetch, params }) {
 
       
 
-                    // GLOBALER FILTER für 'bookings' (Parent Bookings)
+                      // Extract unique linkedProductIds from all bookings
 
       
 
@@ -199,7 +199,7 @@ export async function load({ fetch, params }) {
 
       
 
-          
+                      const allBookings = [
 
       
 
@@ -207,7 +207,7 @@ export async function load({ fetch, params }) {
 
       
 
-                    // Falls alle Kurse rausgefiltert wurden, greift ProductDetails auf 'bookings' zurück.
+                        ...(bookings.data || []),
 
       
 
@@ -215,7 +215,7 @@ export async function load({ fetch, params }) {
 
       
 
-          
+                        ...Object.values(courseBookings).flatMap((cb) => cb.data || []),
 
       
 
@@ -223,7 +223,7 @@ export async function load({ fetch, params }) {
 
       
 
-                    // Diese müssen auch bereinigt werden, damit keine abgelaufenen Kurs-Buchungen auftauchen.
+                      ];
 
       
 
@@ -231,7 +231,7 @@ export async function load({ fetch, params }) {
 
       
 
-          
+                    
 
       
 
@@ -239,7 +239,175 @@ export async function load({ fetch, params }) {
 
       
 
-                    if (bookings && bookings.data && product.courses) {
+                        const uniqueLinkedProductIds = [
+
+      
+
+        
+
+      
+
+                    
+
+      
+
+        
+
+      
+
+                          ...new Set(allBookings.map((b) => b.productId).filter(Boolean)),
+
+      
+
+        
+
+      
+
+                    
+
+      
+
+        
+
+      
+
+                        ];
+
+      
+
+        
+
+      
+
+                    
+
+      
+
+        
+
+      
+
+                      const locationResources = {};
+
+      
+
+        
+
+      
+
+                      if (uniqueLinkedProductIds.length > 0) {
+
+      
+
+        
+
+      
+
+                        const locationProductPromises = uniqueLinkedProductIds.map(async (id) => {
+
+      
+
+        
+
+      
+
+                          const locationProduct = await fetchProduct(id, fetch);
+
+      
+
+        
+
+      
+
+                          locationResources[id] = locationProduct;
+
+      
+
+        
+
+      
+
+                        });
+
+      
+
+        
+
+      
+
+                        await Promise.all(locationProductPromises);
+
+      
+
+        
+
+      
+
+                      }
+
+      
+
+        
+
+      
+
+                    
+
+      
+
+        
+
+      
+
+                      // GLOBALER FILTER für 'bookings' (Parent Bookings)
+
+      
+
+        
+
+      
+
+                    
+
+      
+
+        
+
+      
+
+                      // Falls alle Kurse rausgefiltert wurden, greift ProductDetails auf 'bookings' zurück.
+
+      
+
+        
+
+      
+
+                    
+
+      
+
+        
+
+      
+
+                      // Diese müssen auch bereinigt werden, damit keine abgelaufenen Kurs-Buchungen auftauchen.
+
+      
+
+        
+
+      
+
+                    
+
+      
+
+        
+
+      
+
+                      if (bookings && bookings.data && product.courses) {
 
       
 
@@ -263,86 +431,102 @@ export async function load({ fetch, params }) {
 
       
 
+                      }
+
+      
+
+        
+
+      
+
+                    
+
+      
+
+        
+
+      
+
+                      // Save first course ID for fallback before overwriting courses
+
+      
+
+        
+
+      
+
+                    
+
+      
+
+        
+
+      
+
+                      const firstCourseId = product.courses && product.courses.length > 0 ? product.courses[0].id : null;
+
+      
+
+        
+
+      
+
+                    
+
+      
+
+        
+
+      
+
+                      return {
+
+      
+
+        
+
+      
+
+                        product: { ...product, courses: filteredCourses, firstCourseId },
+
+      
+
+        
+
+      
+
+                        bookings,
+
+      
+
+        
+
+      
+
+                        courseBookings,
+
+      
+
+        
+
+      
+
+                        locationResources, // Add locationResources to the returned data
+
+      
+
+        
+
+      
+
+                      };
+
+      
+
+        
+
+      
+
                     }
-
-      
-
-        
-
-      
-
-                  
-
-      
-
-        
-
-      
-
-                    // Save first course ID for fallback before overwriting courses
-
-      
-
-        
-
-      
-
-                    const firstCourseId = product.courses && product.courses.length > 0 ? product.courses[0].id : null;
-
-      
-
-        
-
-      
-
-          
-
-      
-
-        
-
-      
-
-                    return {
-
-      
-
-        
-
-      
-
-                      product: { ...product, courses: filteredCourses, firstCourseId },
-
-      
-
-        
-
-      
-
-                      bookings,
-
-      
-
-        
-
-      
-
-                      courseBookings,
-
-      
-
-        
-
-      
-
-                    };
-
-      
-
-        
-
-      
-
-                }
 
       

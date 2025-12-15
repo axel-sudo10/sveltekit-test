@@ -3,7 +3,7 @@
     import CourseIndicator from "../course/CourseIndicator.svelte";
     import BookingButton from "../booking/bookingbutton.svelte";
 
-    let { product, bookings, courseBookings = {} } = $props();
+    let { product, bookings, courseBookings = {}, locationResources } = $props();
 
     // Prüft ob es ein Kurs ist
     const isCourse = $derived(product?.isCourse === true);
@@ -81,6 +81,31 @@
         ) ?? [],
     );
 
+    // Eindeutige detaillierte Ortsnamen aus den Buchungen ermitteln
+    const uniqueLocationNames = $derived.by(() => {
+        if (!locationResources) return [];
+
+        // Alle relevanten Buchungen sammeln (Hauptprodukt + Kurse)
+        const allBookings = [
+            ...(bookings?.data || []),
+            ...Object.values(courseBookings).flatMap((cb) => cb.data || []),
+        ];
+
+        // Unique linkedProductIds sammeln
+        const ids = new Set(allBookings.map((b) => b.productId).filter(Boolean));
+
+        const names = new Set();
+        for (const id of ids) {
+            const res = locationResources[id];
+            if (res) {
+                // Name extrahieren (ähnlich wie in BookingSchedule)
+                const name = res.translations?.[0]?.description || res.description;
+                if (name) names.add(name);
+            }
+        }
+        return Array.from(names);
+    });
+
     // Event-Handler für Buttons
     const handleClose = () => {
         // TODO: Navigation zurück oder Modal schließen
@@ -148,6 +173,11 @@
             <p>
                 <strong>Ort:</strong>
                 {product.location.description}
+                {#if uniqueLocationNames.length > 0}
+                    <span class="text-neutral-600">
+                        ({uniqueLocationNames.join(", ")})
+                    </span>
+                {/if}
             </p>
         {/if}
 
@@ -188,6 +218,7 @@
                                 product={course}
                                 minDate={course.startDate}
                                 maxDate={course.endDate}
+                                {locationResources}
                             />
                         </div>
                         <div class="flex-shrink-0">
@@ -204,6 +235,7 @@
             {product}
             minDate={product.startDate}
             maxDate={product.endDate}
+            {locationResources}
         />
 
         <div class="flex justify-between items-center w-full mt-4">

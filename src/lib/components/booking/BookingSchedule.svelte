@@ -9,7 +9,7 @@
     // Component Properties
     // `bookings` prop contains the raw booking data fetched from an API.
     // `product` prop contains the product data to determine if it's a course.
-    let { bookings, product, minDate, maxDate } = $props();
+    let { bookings, product, minDate, maxDate, locationResources } = $props();
 
     // Debugging: Logge den Zeitraum falls vorhanden
     $effect(() => {
@@ -161,6 +161,14 @@
 
                 <!-- Time Range Display -->
                 <p class="text-center text-xs">{formatted.timeRange}</p>
+
+                {#if booking.productId && locationResources[booking.productId]}
+                    {@const locationProduct = locationResources[booking.productId]}
+                    {@const locationName = locationProduct.translations?.[0]?.description || locationProduct.description || 'Ort unbekannt'}
+                    <p class="text-center text-xs text-gray-500">
+                        {locationName}
+                    </p>
+                {/if}
 
                 <!-- Available Participants Display -->
                 <p
