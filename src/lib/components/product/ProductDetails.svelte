@@ -1,7 +1,7 @@
 <script>
     import BookingSchedule from "../booking/BookingSchedule.svelte";
     import CourseIndicator from "../course/CourseIndicator.svelte";
-    import BookingButton from "../booking/bookingbutton.svelte";
+    import BookingButton from "../booking/BookingButton.svelte";
 
     let { product, bookings, courseBookings = {}, locationResources } = $props();
 

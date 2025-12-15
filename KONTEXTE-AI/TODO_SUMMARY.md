@@ -13,6 +13,6 @@ Hier ist eine Zusammenfassung aller `TODO`-Kommentare, die im Projekt gefunden w
     - Die Logik zum Filtern von `SUBSCRIPTION` muss geklärt und korrigiert werden, da sie aktuell nicht korrekt funktioniert.
     - Es muss eine Funktion für die "Zurück"-Navigation oder zum Schließen eines Modals implementiert werden. Frage?
 
-- **`bookingbutton.svelte`**:
+- **`BookingButton.svelte`**:
     - Die Logik, die bestimmt, wann ein Produkt buchbar ist, muss genauer definiert und überarbeitet werden.
     - Die Generierung von `.ics`-Kalenderdateien muss korrigiert werden, damit sie funktionierende und sinnvolle Daten ausgibt.
