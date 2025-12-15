@@ -1,12 +1,12 @@
 <script>
-    let { product } = $props();
+    let { product, booking, class: className = "" } = $props();
 
     // ICS-Datei für Kalender generieren (Dummy)
     // TODO: alle eventualitäten finden indenen keine buchung möglich ist und dann den button ausblenden
     // zb: kursvoll, kurs ist offen, kursfindet noch garnicht stadt
     // TODO: überarbeiten so das sinvolle und funktionirende ics ausgegeben werden
     // const generateICSFile = () => {
-    const icsContent = `BEGIN:VCALENDAR
+    const icsContent = product ? `BEGIN:VCALENDAR
 VERSION:2.0
 PRODID:-//UR-Sport//Product Calendar//EN
 BEGIN:VEVENT
@@ -17,7 +17,7 @@ SUMMARY:${product.translations?.[0]?.description || "UR-Sport Event"}
 DESCRIPTION:${product.translations?.[0]?.summary?.replace(/<[^>]*>/g, "") || "No description"}
 LOCATION:${product.location?.description || "TBA"}
 END:VEVENT
-END:VCALENDAR`;
+END:VCALENDAR` : null;
 
     //     const blob = new Blob([icsContent], { type: "text/calendar" });
     //     const url = URL.createObjectURL(blob);
@@ -28,8 +28,8 @@ END:VCALENDAR`;
     //     URL.revokeObjectURL(url);
     // };
 
-    // Validierung und URL-Generierung mit detaillierten Warnings
-    const getBookingUrl = () => {
+    // Validierung und URL-Generierung für Produkte
+    const getProductBookingUrl = () => {
         if (!product) {
             console.warn("⚠️ BookingButton: Kein Produkt übergeben");
             return null;
@@ -40,33 +40,36 @@ END:VCALENDAR`;
             return null;
         }
 
-        // Weitere Checks (für später vorbereitet):
-        // if (product.isFull) {
-        //     console.warn("⚠️ BookingButton: Kurs ist voll", { id: product.id });
-        //     return null;
-        // }
-        // if (product.status === 'cancelled') {
-        //     console.warn("⚠️ BookingButton: Kurs abgesagt", { id: product.id });
-        //     return null;
-        // }
-        // if (product.status === 'draft') {
-        //     console.warn("⚠️ BookingButton: Kurs nicht veröffentlicht", { id: product.id });
-        //     return null;
-        // }
-
         return `https://ur-sport.de/shop/courses/${product.id}`;
     };
 
-    const courseUrl = getBookingUrl();
+    // Validierung und URL-Generierung für einzelne Buchungslots
+    const getSlotBookingUrl = () => {
+        if (!booking?.uuid) {
+            console.warn("⚠️ BookingButton: Booking UUID fehlt", { bookingId: booking?.id });
+            return null;
+        }
+        return `https://consumer-frontend.production.regensburg.delcom.nl/bookings/${booking.uuid}`;
+    };
+
+    const url = booking ? getSlotBookingUrl() : getProductBookingUrl();
+    const buttonText = booking ? "zum Termin" : "zum Termin";
+    const defaultClass = booking ? "px-2 py-1 text-xs" : "px-6 py-2 rounded-md";
 </script>
 
-{#if courseUrl}
+{#if url}
     <a
-        href={courseUrl}
+        href={url}
         target="_blank"
         rel="noopener noreferrer"
-        class="px-6 py-2 rounded-md bg-gray-500 text-white hover:bg-primary/90 transition-colors"
+        class="{defaultClass} bg-gray-500 text-white hover:bg-primary/90 transition-colors {className}"
     >
-        Buchen
+        {buttonText}
     </a>
+{:else}
+    {#if booking}
+        <span class="px-2 py-1 text-xs text-center">
+            Kein Termin
+        </span>
+    {/if}
 {/if}

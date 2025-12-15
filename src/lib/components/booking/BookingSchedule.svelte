@@ -4,6 +4,8 @@
   Automatically navigates to the page containing today's or the next upcoming booking on load.
 -->
 <script>
+    import BookingButton from './BookingButton.svelte';
+
     // Component Properties
     // `bookings` prop contains the raw booking data fetched from an API.
     // `product` prop contains the product data to determine if it's a course.
@@ -25,15 +27,6 @@
     // Ein Course-Objekt (aus product.courses) hat kein isCourse Property, ist aber immer ein Kurs
     // Nur wenn isCourse explizit false ist, zeigen wir Booking-Buttons pro Slot
     const isCourse = $derived(product?.isCourse !== false);
-
-    // Booking URL generieren (nur für Produkte, nicht für Kurse)
-    const getBookingUrl = (booking) => {
-        if (!booking?.uuid) {
-            console.warn("⚠️ Booking UUID fehlt", { bookingId: booking?.id });
-            return null;
-        }
-        return `https://consumer-frontend.production.regensburg.delcom.nl/bookings/${booking.uuid}`;
-    };
 
     // Pagination State
     // `pageSize`: Defines how many booking cards are displayed per page.
@@ -180,28 +173,13 @@
 
                 <!-- Buchen Button (nur für Produkte, nicht für Kurse) -->
                 {#if !isCourse}
-                    {@const bookingUrl = getBookingUrl(booking)}
-                    {#if bookingUrl}
-                        <a
-                            href={bookingUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            class="mt-2 px-2 py-1 text-xs rounded bg-gray-500 text-white hover:bg-primary/90 transition-colors text-center"
-                        >
-                            Buchen
-                        </a>
-                    {:else}
-                        <!-- DEBUG: Fallback-Text wenn UUID fehlt -->
-                        <span class="mt-2 px-2 py-1 text-xs text-center">
-                            Nicht buchbar
-                        </span>
-                    {/if}
+                    <BookingButton booking={booking} class="mt-2 rounded text-center block" />
                 {/if}
             </div>
         {:else}
             <!-- Fallback content if no booking appointments are available -->
             <p class="text-center text-gray-500">
-                Keine Buchungstermine verfügbar.
+                Keine Termine verfügbar.
             </p>
         {/each}
     </div>
