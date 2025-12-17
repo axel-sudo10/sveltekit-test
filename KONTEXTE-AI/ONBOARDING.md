@@ -20,13 +20,20 @@ sveltekit-test/
 │   │   ├── +layout.svelte            # Root Layout Component
 │   │   ├── +page.svelte              # Startseite
 │   │   ├── +page.js                  # Daten laden für die Startseite
-│   │   └── veranstaltung/          # veranstaltung Route
+│   │   ├── stundenplan/              # Stundenplan Route
+│   │   │   ├── +layout.svelte
+│   │   │   └── +page.js
+│   │   └── veranstaltung/            # Veranstaltung Route
 │   │       └── [id]/                 # Dynamische ID Route
+│   │           ├── +layout.svelte
 │   │           ├── +page.svelte      # Detail-Seite für Veranstaltung
 │   │           └── +page.js          # Load-Funktion mit parallelen API-Requests
 │   ├── lib/
+│   │   ├── api/                      # Zentralisierte API-Funktionen
+│   │   │   └── index.js              # fetchProducts, fetchProduct, fetchBookings
 │   │   ├── components/               # Wiederverwendbare Svelte Components (kategorisiert)
 │   │   │   ├── booking/
+│   │   │   │   ├── BookingButton.svelte      # Buchungs-Link Button
 │   │   │   │   └── BookingSchedule.svelte    # Wochen-Pagination für Buchungszeiten
 │   │   │   ├── course/
 │   │   │   │   └── CourseIndicator.svelte    # Kurs-Indikator Badge
@@ -48,21 +55,17 @@ sveltekit-test/
 
 ### 1. Produktdaten laden (`src/routes/+page.js`)
 ```javascript
+import { fetchProducts } from "$lib/api";
+
 export async function load({ fetch }) {
-  const res = await fetch(
-    'https://backbone-web-api.production.regensburg.delcom.nl/products?join=tags&join=translations&join=location&isActive=1&limit=20'
-  );
-  
-  if (!res.ok) {
-    error(res.status, 'Failed to fetch products from external API.');
-  }
-  
-  const { data: productsArray } = await res.json();
-  return { products: productsArray };
+  const productsData = await fetchProducts({ limit: 20, customFetch: fetch });
+  return {
+    products: productsData.products || productsData.data || [],
+  };
 }
 ```
-- Lädt Produktdaten **direkt von der externen API**
-- Nutzt SvelteKit Error-Handling mit `error()`
+- Nutzt zentralisierte API-Funktionen aus `$lib/api`
+- SvelteKit Error-Handling in den API-Funktionen integriert
 
 ### 2. Veranstaltungs-Details mit parallelen Requests (`src/routes/veranstaltung/[id]/+page.js`)
 ```javascript
@@ -138,6 +141,14 @@ Features:
 - Startet automatisch bei der aktuellen Woche
 - Zeigt Verfügbarkeitsstatus: ✓ Frei / ✗ Voll
 - Responsive: Mobile übereinander, Desktop nebeneinander
+
+#### BookingButton (`src/lib/components/booking/BookingButton.svelte`)
+**Button-Komponente für Buchungs-Links**
+
+Features:
+- Generiert korrekte Buchungs-URLs für Produkte und Slots
+- Unterstützt verschiedene ID-Quellen (courseId, courses Array, firstCourseId, id)
+- Props: `product`, `booking`, `class`
 
 #### CourseIndicator (`src/lib/components/course/CourseIndicator.svelte`)
 - Zeigt Badge an, wenn Produkt ein Kurs ist (`isCourse === true`)
@@ -245,8 +256,30 @@ Das Projekt nutzt Svelte 5 mit modernen "Runes":
 
 ## API Integration
 
+### Zentralisierte API-Funktionen (`src/lib/api/index.js`)
+
+Das Projekt nutzt zentralisierte API-Funktionen für konsistente Datenabfragen:
+
+```javascript
+import { fetchProducts, fetchProduct, fetchBookings } from "$lib/api";
+
+// Alle Produkte laden
+const data = await fetchProducts({ limit: 200, customFetch: fetch });
+
+// Einzelnes Produkt laden
+const product = await fetchProduct(id, fetch);
+
+// Buchungen für Produkt laden
+const bookings = await fetchBookings(productId, { limit: 60, customFetch: fetch });
+```
+
+**Vorteile:**
+- Einheitliche Error-Handling
+- Konsistente Query-Parameter
+- Wiederverwendbar in allen Load-Funktionen
+
 ### Externe API
-**Basis URL:** `https://backbone-web-api.production.regensburg.delcom.nl/products`
+**Basis URL:** `https://backbone-web-api.production.regensburg.delcom.nl`
 
 **Query Parameter:**
 - `join=tags|translations|location` - Daten-Joins
@@ -277,14 +310,14 @@ Das Projekt nutzt Svelte 5 mit modernen "Runes":
 - [x] **Komponenten-Namen korrigiert**: `filterMenu` → `FilterMenu`, `productSlot` → `ProductSlot` (PascalCase)
 - [x] **Komponenten-Struktur reorganisiert**: In kategorische Subdirectories aufgeteilt (booking/, course/, filter/, product/)
 - [x] **Alle Importe aktualisiert**: Routes und Komponenten verwenden neue Pfade
+- [x] **API-Funktionen zentralisiert**: `src/lib/api/index.js` mit fetchProducts, fetchProduct, fetchBookings
+- [x] **BookingButton Komponente**: Buchungs-Links für Produkte und Slots
 
 ### Bestehende Issues
 1. **Filterlogik nicht implementiert**: FilterMenu ist vorhanden, aber Filter werden nicht auf ProductList angewendet
-2. **Produktdetail-Route existiert**: `/veranstaltung/[id]/` ist implementiert und funktioniert
 
 ### Nächste Schritte
 - [ ] Filter-Logik implementieren (Abos & Kategorien anwenden)
-- [ ] Error Handling für API-Fehler verbessern
 - [ ] Loading States hinzufügen
 - [ ] TypeScript Migration (optional)
 
@@ -353,6 +386,6 @@ git push origin feature/neue-funktion
 
 ---
 
-**Letzte Aktualisierung:** 2025-12-03
-**Projekt Status:** In aktiver Entwicklung - API Integration & Filter-Logik
-**Letzte Änderung:** Komponenten-Struktur reorganisiert (booking/, course/, filter/, product/)
+**Letzte Aktualisierung:** 2025-12-17
+**Projekt Status:** In aktiver Entwicklung
+**Letzte Änderung:** API-Funktionen zentralisiert, BookingButton hinzugefügt
