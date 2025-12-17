@@ -3,7 +3,12 @@
     import CourseIndicator from "../course/CourseIndicator.svelte";
     import BookingButton from "../booking/BookingButton.svelte";
 
-    let { product, bookings, courseBookings = {}, locationResources } = $props();
+    let {
+        product,
+        bookings,
+        courseBookings = {},
+        locationResources,
+    } = $props();
 
     // Prüft ob es ein Kurs ist
     const isCourse = $derived(product?.isCourse === true);
@@ -39,10 +44,14 @@
             .trim();
     };
 
-    // Titel aus translations.description holen
+    // Titel aus translations.description holen (deutsch bevorzugt)
     const getTitle = (product) => {
         if (product.translations?.length > 0) {
+            const germanTranslation = product.translations.find(
+                (t) => t.language === "de",
+            );
             return (
+                germanTranslation?.description ||
                 product.translations[0].description ||
                 "Keine Beschreibung verfügbar"
             );
@@ -50,10 +59,14 @@
         return "Keine Beschreibung verfügbar";
     };
 
-    // Beschreibung aus translations.summary holen (bereinigt)
+    // Beschreibung aus translations.summary holen (deutsch bevorzugt, bereinigt)
     const getDescription = (product) => {
         if (product.translations?.length > 0) {
-            const summary = product.translations[0].summary;
+            const germanTranslation = product.translations.find(
+                (t) => t.language === "de",
+            );
+            const summary =
+                germanTranslation?.summary || product.translations[0].summary;
             const text = extractText(summary);
             return text || "Keine Beschreibung verfügbar";
         }
@@ -104,14 +117,22 @@
         });
 
         // Unique linkedProductIds sammeln
-        const ids = new Set(activeBookings.map((b) => b.productId).filter(Boolean));
+        const ids = new Set(
+            activeBookings.map((b) => b.productId).filter(Boolean),
+        );
 
         const names = new Set();
         for (const id of ids) {
             const res = locationResources[id];
             if (res) {
-                // Name extrahieren (ähnlich wie in BookingSchedule)
-                const name = res.translations?.[0]?.description || res.description;
+                // Name extrahieren (deutsch bevorzugt)
+                const germanTranslation = res.translations?.find(
+                    (t) => t.language === "de",
+                );
+                const name =
+                    germanTranslation?.description ||
+                    res.translations?.[0]?.description ||
+                    res.description;
                 if (name) names.add(name);
             }
         }
@@ -217,7 +238,9 @@
                 <div class="border-t pt-4">
                     <!-- Course Name -->
                     <h3 class="text-base font-medium mb-3">
-                        {course.translations?.[0]?.description ||
+                        {course.translations?.find((t) => t.language === "de")
+                            ?.description ||
+                            course.translations?.[0]?.description ||
                             course.description ||
                             `Kurs ${course.id}`}
                     </h3>
