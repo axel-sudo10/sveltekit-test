@@ -4,7 +4,7 @@
   Automatically navigates to the page containing today's or the next upcoming booking on load.
 -->
 <script>
-    import BookingButton from './BookingButton.svelte';
+    import BookingButton from "./BookingButton.svelte";
 
     // Component Properties
     // `bookings` prop contains the raw booking data fetched from an API.
@@ -14,11 +14,15 @@
     // Debugging: Logge den Zeitraum falls vorhanden
     $effect(() => {
         if (minDate || maxDate) {
-             console.log("BookingSchedule Range Limit:", {
-                minDate: minDate ? new Date(minDate).toLocaleDateString() : 'none',
-                maxDate: maxDate ? new Date(maxDate).toLocaleDateString() : 'none',
-                productId: product?.id
-             });
+            console.log("BookingSchedule Range Limit:", {
+                minDate: minDate
+                    ? new Date(minDate).toLocaleDateString()
+                    : "none",
+                maxDate: maxDate
+                    ? new Date(maxDate).toLocaleDateString()
+                    : "none",
+                productId: product?.id,
+            });
         }
     });
 
@@ -36,16 +40,28 @@
 
     // Derived State: Processed Bookings Array
     // `bookingsArray`: Extracts the actual booking data, sorts it chronologically by startDate.
-    // Uses `$derived` to reactively update when the `bookings` prop changes.
-    let bookingsArray = $derived(
-        bookings && Array.isArray(bookings.data)
-            ? [...bookings.data].sort(
-                  (a, b) =>
-                      new Date(a.startDate).getTime() -
-                      new Date(b.startDate).getTime(),
-              )
-            : [],
-    );
+    // Bei Nicht-Kursen: Nur Termine ab heute anzeigen
+    // Bei Kursen: Alle Termine anzeigen (auch vergangene)
+    let bookingsArray = $derived.by(() => {
+        if (!bookings || !Array.isArray(bookings.data)) return [];
+
+        let filtered = [...bookings.data];
+
+        // Nur bei Nicht-Kursen: Vergangene Termine ausblenden
+        if (!isCourse) {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            filtered = filtered.filter(
+                (booking) => new Date(booking.startDate) >= today,
+            );
+        }
+
+        return filtered.sort(
+            (a, b) =>
+                new Date(a.startDate).getTime() -
+                new Date(b.startDate).getTime(),
+        );
+    });
 
     // Effect: Initialize Current Page to Today's Bookings
     // `$effect` runs once initially and whenever `bookingsArray` changes.
@@ -163,8 +179,12 @@
                 <p class="text-center text-xs">{formatted.timeRange}</p>
 
                 {#if booking.productId && locationResources[booking.productId]}
-                    {@const locationProduct = locationResources[booking.productId]}
-                    {@const locationName = locationProduct.translations?.[0]?.description || locationProduct.description || 'Ort unbekannt'}
+                    {@const locationProduct =
+                        locationResources[booking.productId]}
+                    {@const locationName =
+                        locationProduct.translations?.[0]?.description ||
+                        locationProduct.description ||
+                        "Ort unbekannt"}
                     <p class="text-center text-xs text-gray-500">
                         {locationName}
                     </p>
@@ -181,14 +201,15 @@
 
                 <!-- Buchen Button (nur für Produkte, nicht für Kurse) -->
                 {#if !isCourse}
-                    <BookingButton booking={booking} class="mt-2 rounded text-center block" />
+                    <BookingButton
+                        {booking}
+                        class="mt-2 rounded text-center block"
+                    />
                 {/if}
             </div>
         {:else}
             <!-- Fallback content if no booking appointments are available -->
-            <p class="text-center text-gray-500">
-                Keine Termine verfügbar.
-            </p>
+            <p class="text-center text-gray-500">Keine Termine verfügbar.</p>
         {/each}
     </div>
 </div>
