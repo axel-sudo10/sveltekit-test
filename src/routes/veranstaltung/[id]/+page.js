@@ -60,8 +60,11 @@ export async function load({ fetch, params }) {
         // Strict Check: Booking darf nicht VOR dem Kurs beginnen
         if (bookStart < courseStart) return false;
 
-        const overlaps = bookStart < courseEnd && bookEnd > courseStart;
-        return overlaps;
+        // NOTE: Overlap-Check für courseEnd auskommentiert - die aktuelle Seite
+        // scheint auch nur nach startDate zu filtern, nicht nach endDate
+        // const overlaps = bookStart < courseEnd && bookEnd > courseStart;
+        // return overlaps;
+        return true;
       });
 
       console.log(`Bookings nach Zeitraum-Filter: ${validBookings.length}`);
