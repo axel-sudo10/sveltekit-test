@@ -23,7 +23,7 @@ export async function load({ fetch, params }) {
       const courseBookingData = await fetchBookings(params.id, {
         customFetch: fetch,
         limit: 300,
-        query: { courseId: course.id }
+        query: { courseId: course.id },
       });
       return { course, bookings: courseBookingData };
     });
@@ -37,18 +37,22 @@ export async function load({ fetch, params }) {
       const bookingsRaw = courseBookingData?.data || [];
 
       console.group(`Filter-Check für Kurs: ${course.id}`);
-      console.log(`Zeitraum: ${courseStart?.toISOString()} bis ${courseEnd?.toISOString()}`);
+      console.log(
+        `Zeitraum: ${courseStart?.toISOString()} bis ${courseEnd?.toISOString()}`,
+      );
       console.log(`Bookings vor Filter: ${bookingsRaw.length}`);
 
       // 1. Filter Bookings: Müssen im Kurs-Zeitraum liegen
       // Overlap Logic: (BookingStart < CourseEnd) && (BookingEnd > CourseStart)
-      
+
       const validBookings = bookingsRaw.filter((booking) => {
         if (!courseStart || !courseEnd) return true; // Ohne Kurs-Daten kein Filter (oder strict false?) -> Hier permissive
 
         // FIX: API liefert startDate/endDate, nicht start/date
-        const bookStart = new Date(booking.startDate); 
-        const bookEnd = booking.endDate ? new Date(booking.endDate) : new Date(bookStart.getTime() + 60*60*1000); // 1h Fallback
+        const bookStart = new Date(booking.startDate);
+        const bookEnd = booking.endDate
+          ? new Date(booking.endDate)
+          : new Date(bookStart.getTime() + 60 * 60 * 1000); // 1h Fallback
 
         // Check for invalid dates
         if (isNaN(bookStart.getTime())) return false;
@@ -65,468 +69,85 @@ export async function load({ fetch, params }) {
       // 2. Prüfe ob Bookings vorhanden sind
       const hasBookings = validBookings.length > 0;
 
-      
+      // 3. Prüfe ob Course gültig ist (nur basierend auf endDate)
+      const isCourseActive = courseEnd ? courseEnd > today : true;
 
-        
+      if (!isCourseActive) {
+        console.log(
+          `Ausschluss: Kurs abgelaufen (endDate in der Vergangenheit).`,
+        );
+      } else if (!hasBookings) {
+        console.log(`Ausschluss: Keine passenden Bookings im Zeitraum.`);
+      } else {
+        console.log(`-> Kurs AKZEPTIERT.`);
+      }
+      console.groupEnd();
 
-      
+      // Nur hinzufügen wenn Bookings vorhanden UND aktiv
+      if (hasBookings && isCourseActive) {
+        // WICHTIG: Wir speichern die GEFILTERTEN Bookings, nicht die rohen!
 
-              // 3. Prüfe ob Course gültig ist
+        // Wir müssen die Struktur von courseBookingData beibehalten
 
-      
+        courseBookings[course.id] = {
+          ...courseBookingData,
+          data: validBookings,
+        };
 
-              const availableTill = course.availableTillDate ? new Date(course.availableTillDate) : null;
+        filteredCourses.push(course);
+      }
+    });
+  }
 
-      
+  // Extract unique linkedProductIds from all bookings
 
-              
+  const allBookings = [
+    ...(bookings.data || []),
 
-      
+    ...Object.values(courseBookings).flatMap((cb) => cb.data || []),
+  ];
 
-              // Logik: Kurs ist aktiv, wenn availableTill > heute ODER (falls nicht gesetzt) endDate > heute
+  const uniqueLinkedProductIds = [
+    ...new Set(allBookings.map((b) => b.productId).filter(Boolean)),
+  ];
 
-      
+  const locationResources = {};
 
-              let isCourseActive = false;
+  if (uniqueLinkedProductIds.length > 0) {
+    const locationProductPromises = uniqueLinkedProductIds.map(async (id) => {
+      const locationProduct = await fetchProduct(id, fetch);
 
-      
+      locationResources[id] = locationProduct;
+    });
 
-              if (availableTill) {
+    await Promise.all(locationProductPromises);
+  }
 
-      
+  // GLOBALER FILTER für 'bookings' (Parent Bookings)
 
-                  isCourseActive = availableTill > today;
+  // Falls alle Kurse rausgefiltert wurden, greift ProductDetails auf 'bookings' zurück.
 
-      
+  // Diese müssen auch bereinigt werden, damit keine abgelaufenen Kurs-Buchungen auftauchen.
 
-              } else if (courseEnd) {
+  if (bookings && bookings.data && product.courses) {
+    // ... (code omitted for brevity in replace block, but must match exact lines)
+    // Wait, I need to match exact context. I will use the "return" block which is unique.
+  }
 
-      
+  // Save first course ID for fallback before overwriting courses
 
-                  isCourseActive = courseEnd > today;
+  const firstCourseId =
+    product.courses && product.courses.length > 0
+      ? product.courses[0].id
+      : null;
 
-      
+  return {
+    product: { ...product, courses: filteredCourses, firstCourseId },
 
-              }
+    bookings,
 
-      
+    courseBookings,
 
-        
-
-      
-
-              if (!isCourseActive) {
-
-      
-
-                 console.log(`Ausschluss: Kurs nicht mehr verfügbar/abgelaufen.`);
-
-      
-
-              } else if (!hasBookings) {
-
-      
-
-                 console.log(`Ausschluss: Keine passenden Bookings im Zeitraum.`);
-
-      
-
-              } else {
-
-      
-
-                 console.log(`-> Kurs AKZEPTIERT.`);
-
-      
-
-              }
-
-      
-
-              console.groupEnd();
-
-      
-
-        
-
-      
-
-              // Nur hinzufügen wenn Bookings vorhanden UND aktiv
-
-      
-
-              if (hasBookings && isCourseActive) {
-
-      
-
-                // WICHTIG: Wir speichern die GEFILTERTEN Bookings, nicht die rohen!
-
-      
-
-                // Wir müssen die Struktur von courseBookingData beibehalten
-
-      
-
-                courseBookings[course.id] = { ...courseBookingData, data: validBookings };
-
-      
-
-                filteredCourses.push(course);
-
-      
-
-              }
-
-      
-
-            });
-
-      
-
-          }
-
-      
-
-        
-
-      
-
-                      // Extract unique linkedProductIds from all bookings
-
-      
-
-        
-
-      
-
-                      const allBookings = [
-
-      
-
-        
-
-      
-
-                        ...(bookings.data || []),
-
-      
-
-        
-
-      
-
-                        ...Object.values(courseBookings).flatMap((cb) => cb.data || []),
-
-      
-
-        
-
-      
-
-                      ];
-
-      
-
-        
-
-      
-
-                    
-
-      
-
-        
-
-      
-
-                        const uniqueLinkedProductIds = [
-
-      
-
-        
-
-      
-
-                    
-
-      
-
-        
-
-      
-
-                          ...new Set(allBookings.map((b) => b.productId).filter(Boolean)),
-
-      
-
-        
-
-      
-
-                    
-
-      
-
-        
-
-      
-
-                        ];
-
-      
-
-        
-
-      
-
-                    
-
-      
-
-        
-
-      
-
-                      const locationResources = {};
-
-      
-
-        
-
-      
-
-                      if (uniqueLinkedProductIds.length > 0) {
-
-      
-
-        
-
-      
-
-                        const locationProductPromises = uniqueLinkedProductIds.map(async (id) => {
-
-      
-
-        
-
-      
-
-                          const locationProduct = await fetchProduct(id, fetch);
-
-      
-
-        
-
-      
-
-                          locationResources[id] = locationProduct;
-
-      
-
-        
-
-      
-
-                        });
-
-      
-
-        
-
-      
-
-                        await Promise.all(locationProductPromises);
-
-      
-
-        
-
-      
-
-                      }
-
-      
-
-        
-
-      
-
-                    
-
-      
-
-        
-
-      
-
-                      // GLOBALER FILTER für 'bookings' (Parent Bookings)
-
-      
-
-        
-
-      
-
-                    
-
-      
-
-        
-
-      
-
-                      // Falls alle Kurse rausgefiltert wurden, greift ProductDetails auf 'bookings' zurück.
-
-      
-
-        
-
-      
-
-                    
-
-      
-
-        
-
-      
-
-                      // Diese müssen auch bereinigt werden, damit keine abgelaufenen Kurs-Buchungen auftauchen.
-
-      
-
-        
-
-      
-
-                    
-
-      
-
-        
-
-      
-
-                      if (bookings && bookings.data && product.courses) {
-
-      
-
-        
-
-      
-
-                        // ... (code omitted for brevity in replace block, but must match exact lines)
-
-      
-
-        
-
-      
-
-                        // Wait, I need to match exact context. I will use the "return" block which is unique.
-
-      
-
-        
-
-      
-
-                      }
-
-      
-
-        
-
-      
-
-                    
-
-      
-
-        
-
-      
-
-                      // Save first course ID for fallback before overwriting courses
-
-      
-
-        
-
-      
-
-                    
-
-      
-
-        
-
-      
-
-                      const firstCourseId = product.courses && product.courses.length > 0 ? product.courses[0].id : null;
-
-      
-
-        
-
-      
-
-                    
-
-      
-
-        
-
-      
-
-                      return {
-
-      
-
-        
-
-      
-
-                        product: { ...product, courses: filteredCourses, firstCourseId },
-
-      
-
-        
-
-      
-
-                        bookings,
-
-      
-
-        
-
-      
-
-                        courseBookings,
-
-      
-
-        
-
-      
-
-                        locationResources, // Add locationResources to the returned data
-
-      
-
-        
-
-      
-
-                      };
-
-      
-
-        
-
-      
-
-                    }
-
-      
+    locationResources, // Add locationResources to the returned data
+  };
+}
