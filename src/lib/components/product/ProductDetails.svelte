@@ -120,7 +120,6 @@
 
     // Event-Handler für Buttons
     const handleClose = () => {
-        // TODO: Navigation zurück oder Modal schließen
         window.history.back();
     };
 </script>
