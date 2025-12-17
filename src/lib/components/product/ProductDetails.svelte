@@ -1,4 +1,5 @@
 <script>
+    import { dev } from "$app/environment";
     import BookingSchedule from "../booking/BookingSchedule.svelte";
     import CourseIndicator from "../course/CourseIndicator.svelte";
     import BookingButton from "../booking/BookingButton.svelte";
@@ -10,33 +11,13 @@
         locationResources,
     } = $props();
 
-    // Prüft ob es ein Kurs ist
-    const isCourse = $derived(product?.isCourse === true);
-
-    // Prüft ob Courses vorhanden sind
-    const hasCourses = $derived(product?.courses?.length > 0);
-
-    // Hilfsfunktion: Erstes Bild aus documents holen
-    const getImageUrl = (product) => {
-        if (product.documents?.length > 0 && product.documents[0]?.path) {
-            const baseUrl =
-                "https://storage.googleapis.com/static.production.regensburg.delcom.nl/";
-            return baseUrl + product.documents[0].path;
-        }
-
-        console.warn("❌ Kein Bild verfügbar - Fallback wird verwendet", {
-            hasDocuments: !!product.documents,
-            documentsLength: product.documents?.length || 0,
-            firstDocument: product.documents?.[0],
-        });
-        return "https://placehold.co/664x323";
-        //TODO element img sollte schon den platz des bildes im html einnehmen damit andere elemente nicht nachrücken wenn das bild reinläd
-    };
+    // Hilfsfunktion: Deutsche Übersetzung holen (oder erste verfügbare)
+    const getGermanTranslation = (translations) =>
+        translations?.find((t) => t.language === "de") || translations?.[0];
 
     // HTML extrahieren und bereinigen (optimiert - single pass)
     const extractText = (html) => {
         if (!html) return "";
-
         return html
             .replace(/<[^>]*>/g, "")
             .replace(/&nbsp;|&#?\w+;/g, " ")
@@ -44,34 +25,40 @@
             .trim();
     };
 
-    // Titel aus translations.description holen (deutsch bevorzugt)
-    const getTitle = (product) => {
-        if (product.translations?.length > 0) {
-            const germanTranslation = product.translations.find(
-                (t) => t.language === "de",
-            );
-            return (
-                germanTranslation?.description ||
-                product.translations[0].description ||
-                "Keine Beschreibung verfügbar"
-            );
-        }
-        return "Keine Beschreibung verfügbar";
-    };
+    // Prüft ob es ein Kurs ist
+    const isCourse = $derived(product?.isCourse === true);
 
-    // Beschreibung aus translations.summary holen (deutsch bevorzugt, bereinigt)
-    const getDescription = (product) => {
-        if (product.translations?.length > 0) {
-            const germanTranslation = product.translations.find(
-                (t) => t.language === "de",
-            );
-            const summary =
-                germanTranslation?.summary || product.translations[0].summary;
-            const text = extractText(summary);
-            return text || "Keine Beschreibung verfügbar";
+    // Prüft ob Courses vorhanden sind
+    const hasCourses = $derived(product?.courses?.length > 0);
+
+    // Bild-URL (reaktiv)
+    const imageUrl = $derived.by(() => {
+        const doc = product.documents?.[0];
+        if (doc?.path) {
+            return `https://storage.googleapis.com/static.production.regensburg.delcom.nl/${doc.path}`;
         }
-        return "Keine Beschreibung verfügbar";
-    };
+        //TODO element img sollte schon den platz des bildes im html einnehmen damit andere elemente nicht nachrücken wenn das bild reinläd
+        if (dev) {
+            console.warn("❌ Kein Bild verfügbar - Fallback wird verwendet", {
+                hasDocuments: !!product.documents,
+                documentsLength: product.documents?.length || 0,
+                firstDocument: product.documents?.[0],
+            });
+        }
+        return "https://placehold.co/664x323";
+    });
+
+    // Titel (reaktiv, deutsch bevorzugt)
+    const title = $derived.by(() => {
+        const trans = getGermanTranslation(product.translations);
+        return trans?.description || "Keine Beschreibung verfügbar";
+    });
+
+    // Beschreibung (reaktiv, deutsch bevorzugt, bereinigt)
+    const description = $derived.by(() => {
+        const trans = getGermanTranslation(product.translations);
+        return extractText(trans?.summary) || "Keine Beschreibung verfügbar";
+    });
 
     // Gültige Subscription-Präfixe
     // TODO: nachfragen wie die SUBSCRIPTION richtig gefiltert werden können, so wie es jetzt ist stimmen sie nicht überein
@@ -111,8 +98,6 @@
         const activeBookings = allBookings.filter((b) => {
             if (!b.startDate) return false;
             const start = new Date(b.startDate);
-            // Optional: Auch laufende berücksichtigen (endDate > today)
-            // Hier simple Logik: Startdatum >= Heute 00:00
             return start >= today;
         });
 
@@ -125,14 +110,8 @@
         for (const id of ids) {
             const res = locationResources[id];
             if (res) {
-                // Name extrahieren (deutsch bevorzugt)
-                const germanTranslation = res.translations?.find(
-                    (t) => t.language === "de",
-                );
-                const name =
-                    germanTranslation?.description ||
-                    res.translations?.[0]?.description ||
-                    res.description;
+                const trans = getGermanTranslation(res.translations);
+                const name = trans?.description || res.description;
                 if (name) names.add(name);
             }
         }
@@ -156,15 +135,15 @@
             <!-- titel un information ob es ein kurs ist -->
             <div class="flex flex-row gap-4">
                 <h2 class="text-base sm:text-lg font-medium text-black">
-                    {getTitle(product)}
+                    {title}
                 </h2>
                 <!-- Kursanzeige-Komponente -->
                 <CourseIndicator {product} />
             </div>
 
             <img
-                src={getImageUrl(product)}
-                alt={getTitle(product)}
+                src={imageUrl}
+                alt={title}
                 class="w-full h-auto rounded-xl object-cover"
             />
         </div>
@@ -198,7 +177,7 @@
     <!-- Textbeschreibung -->
     <div class="text-base text-black leading-relaxed space-y-4">
         <p>
-            {getDescription(product)}
+            {description}
         </p>
 
         <!-- ort -->
