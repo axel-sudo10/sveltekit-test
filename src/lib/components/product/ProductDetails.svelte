@@ -15,7 +15,7 @@
     const getGermanTranslation = (translations) =>
         translations?.find((t) => t.language === "de") || translations?.[0];
 
-    // HTML extrahieren und bereinigen (optimiert - single pass)
+    // Hilfsfunktion: HTML extrahieren und bereinigen (optimiert - single pass)
     const extractText = (html) => {
         if (!html) return "";
         return html
@@ -64,7 +64,7 @@
     // TODO: nachfragen wie die SUBSCRIPTION richtig gefiltert werden können, so wie es jetzt ist stimmen sie nicht überein
     const VALID_SUBSCRIPTION_PREFIXES = ["B", "B1", "B2", "B3", "C", "D1"];
 
-    // Prüft ob Subscription mit gültigem Präfix beginnt
+    // Hilfsfunktion: Prüft ob Subscription mit gültigem Präfix beginnt
     const isValidSubscription = (description) => {
         if (!description || typeof description !== "string") {
             return false;
@@ -118,7 +118,7 @@
         return Array.from(names);
     });
 
-    // Event-Handler für Buttons
+    // Hilfsfunktion: Event-Handler für Schließen-Button
     const handleClose = () => {
         window.history.back();
     };
